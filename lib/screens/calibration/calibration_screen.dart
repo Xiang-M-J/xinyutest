@@ -33,7 +33,7 @@ class CalibrationScreenState extends State<CalibrationScreen> {
   AudioCache? player;
   double initVolume = 1.0;
   // 需要达到的声压级
-  final double dBNeed = 85;
+  final double dBNeed = 90;
   // 可以接受的误差范围
   final double tolerance = 5;
   //音量增减的单位数值
@@ -67,6 +67,8 @@ class CalibrationScreenState extends State<CalibrationScreen> {
   void SaveResult() async {
     try {
       var recordAudio = File(CalibrationValue.recordPath);
+      print(CalibrationValue.recordPath);
+      print(await recordAudio.exists());
       var formData = FormData.fromMap({
         'audio': await MultipartFile.fromFile(recordAudio.path),
         "testingDevice": CalibrationValue.testingDevice,

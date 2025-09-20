@@ -1,7 +1,7 @@
 /// 测试记录信息
 class TestRecord {
   ///是否编辑被试者信息，0为编辑被试者信息
-  static bool isNewSubject = true;
+  static int isNewSubject = -1;
 
   /// 被试者ID
   static int subjectId = 0;

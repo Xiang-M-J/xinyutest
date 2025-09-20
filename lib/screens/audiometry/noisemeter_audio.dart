@@ -127,7 +127,6 @@ class NoiseMeterAudioPageState extends State<NoiseMeterAudioPage> {
         _isRecording = false;
         curentTimer = 6000;
         double _ave = sum(_meanDecibel) / sumLength;
-
         if (_ave < 200) {
           _aveDecibel = 20 * (log(_ave * 1.8) / log(10));
         } else if (_ave <= 1000 && _ave >= 200) {
@@ -137,7 +136,6 @@ class NoiseMeterAudioPageState extends State<NoiseMeterAudioPage> {
         } else if (_ave > 17700) {
           _aveDecibel = 20 * (log(_ave) / log(10));
         }
-
         _dynamicDecibel = _aveDecibel;
         if (_aveDecibel <= 0) {
           _aveDecibel = 0.01;
@@ -284,11 +282,13 @@ class NoiseMeterAudioPageState extends State<NoiseMeterAudioPage> {
                           DefaultButton(
                             text: "下一步",
                             press: () {
-                              if (_isContinue) {
-                                /// 路由跳转
-                                Navigator.of(context).push(MaterialPageRoute(
+                              // if (_isContinue) {
+                              //   /// 路由跳转
+                              //   Navigator.of(context).push(MaterialPageRoute(
+                              //       builder: (context) => SettingAudioPage()));
+                              // }
+                              Navigator.of(context).push(MaterialPageRoute(
                                     builder: (context) => SettingAudioPage()));
-                              }
                             },
                           ),
 

@@ -17,7 +17,7 @@ class Body extends StatelessWidget {
             child: Column(
               children: [
                 Text("被试信息", style: headingStyle),
-                TestRecord.isNewSubject
+                TestRecord.isNewSubject == -1
                     ? const Text(
                         "添加被试者的详细信息",
                         textAlign: TextAlign.center,

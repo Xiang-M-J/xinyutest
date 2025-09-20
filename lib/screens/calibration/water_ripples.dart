@@ -40,6 +40,7 @@ class _WaterRipplesState extends State<WaterRipples>
         //查询results中是否已经包含r，若包含则输出该位置，不包含则添加r到results最后
         //indexWhere查询失败时会返回-1
         if (r.device.type != BluetoothDeviceType.le) {
+          print(r.device);
           final existingIndex = results.indexWhere(
               (element) => element.device.address == r.device.address);
           if (existingIndex >= 0) {
@@ -173,7 +174,7 @@ class _WaterRipplesState extends State<WaterRipples>
                           });
                         }
                       } catch (ex) {
-                        print("错误信息：" + ex.toString());
+                        print("错误信息：$ex");
                         // if(mounted) AppTool().showDefineAlert(context, "提示", '出错！');
                       }
                     },
@@ -189,6 +190,7 @@ class _WaterRipplesState extends State<WaterRipples>
               child: DefaultButton(
                 text: "下一页",
                 press: () {
+                  GlobalBlueToothArgs.isBonded = true;
                   if (GlobalBlueToothArgs.isBonded) {
                     // 仅用作测试
                     setState(() {
@@ -276,7 +278,7 @@ class _WaterRipplesState extends State<WaterRipples>
                 child: Container(
                   width: animation.value,
                   height: animation.value,
-                  color: Color.fromARGB(255, 6, 146, 240),
+                  color: const Color.fromARGB(255, 6, 146, 240),
                 ),
               ),
             );
@@ -345,7 +347,7 @@ class _WaterRipplesState extends State<WaterRipples>
 
     _startAnimation();
     //添加应用生命周期监听
-    WidgetsBinding.instance?.addObserver(this);
+    WidgetsBinding.instance.addObserver(this);
 
     //  ==========================================================================
     periodicTimer = Timer.periodic(GlobalBlueToothArgs.timeout, (timer) {
@@ -374,7 +376,7 @@ class _WaterRipplesState extends State<WaterRipples>
               GlobalBlueToothArgs.isBonded = d.device.isBonded;
               CalibrationValue.testedDevice = d.device.name!;
               GlobalBlueToothArgs.tip =
-                  '当前状态：已连接' + CalibrationValue.testedDevice;
+                  '当前状态：已连接${CalibrationValue.testedDevice}';
             }
           }
         }

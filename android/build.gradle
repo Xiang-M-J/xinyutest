@@ -1,8 +1,12 @@
 allprojects {
+    // repositories {
+    //     google()
+    //     mavenCentral()
+    // }
     repositories {
-        google()
-        mavenCentral()
-    }
+   maven { url 'https://maven.aliyun.com/repository/google' }
+   maven { url 'https://maven.aliyun.com/repository/jcenter' }
+}
 }
 
 rootProject.buildDir = "../build"

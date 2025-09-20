@@ -79,24 +79,6 @@ class AudiometryExercisePageState extends State<AudiometryExercisePage> {
   ///用于更新提示按钮文本
   String tipText = '下一句';
 
-  // 储存测试音频的关键字数量
-  List keywordsNumList = List.empty(growable: true);
-
-  // 储存每一句音频的正确关键字数量
-  List correctNumList = List.empty(growable: true);
-
-  // 储存每一句音频记录的关键字，勾选关键字为 true，不勾选为 false
-  List<List<bool>> keywordsList = List.empty(growable: true);
-
-  /// 最大播放的语句索引，用于计算正确率
-  int _maxPlayIndex = 0;
-
-  // 每条语句是否已经测试过
-  List<bool> doneList = List.empty(growable: true);
-  bool isDone = false;
-
-  // bool  = true;
-
   void getSource() async {
     try {
       var response = await dio.get(
@@ -119,11 +101,6 @@ class AudiometryExercisePageState extends State<AudiometryExercisePage> {
         _playIndexList.shuffle();
         _playIndexList.insert(0, 0);
 
-        keywordsNumList = List.generate(_playSumNumber, (index) => 0);
-        correctNumList = List.generate(_playSumNumber, (index) => 0);
-        keywordsList = List.generate(
-            _playSumNumber, (index) => List.empty(growable: true));
-        doneList = List.generate(_playSumNumber, (index) => false);
         AutoProcess();
       } else {
         var error = res["error"];
@@ -142,53 +119,29 @@ class AudiometryExercisePageState extends State<AudiometryExercisePage> {
   }
 
   /// 言语测听流程
-  void AutoProcess({bool autoplay = true}) {
+  void AutoProcess() {
     try {
       setState(() {
         if (_playIndex < _playSumNumber) {
           _keywordNumber =
               responseData[_playIndexList[_playIndex]]["keywordNumber"];
-
           var tempk = responseData[_playIndexList[_playIndex]]
               ["keywords"]; // 更新用于生成界面关键词组件的列表
-
           keyWords = tempk;
-
-          // 第一次测试句子，没有关键字
-          if (keywordsList[_playIndex].isEmpty) {
-            for (int i = 0;
-                i < responseData[_playIndexList[_playIndex]]["keywordNumber"];
-                i++) {
-              var t = tempk[i];
-              t["check"] = false;
-              keywordsList[_playIndex].add(false);
-              keyWords[i] = t;
-            }
+          for (int i = 0;
+              i < responseData[_playIndexList[_playIndex]]["keywordNumber"];
+              i++) {
+            var t = tempk[i];
+            t["check"] = false;
+            keyWords[i] = t;
           }
-          // 重复句子，存在关键字
-          else {
-            for (int i = 0;
-                i < responseData[_playIndexList[_playIndex]]["keywordNumber"];
-                i++) {
-              var t = tempk[i];
-              t["check"] = keywordsList[_playIndex][i];
-              keyWords[i] = t;
-            }
-          }
-
-          keywordsNumList[_playIndex] = _keywordNumber;
           _wavName =
               responseData[_playIndexList[_playIndex]]["name"]; // 更新用于播放的音频名称
-
-          isDone = doneList[_playIndex];
           print(_wavName);
-          // 播放音频，如果自动播放，
-          if (autoplay) {
-            play();
-            print('finish');
-          }
-          tipText = "下一句";
-          returnText = "中止";
+          // 播放音频
+          play();
+          print('finish');
+          _playIndex++;
         } else {
           tipText = '已完成所有语句';
           if (isSave == false) {
@@ -239,6 +192,7 @@ class AudiometryExercisePageState extends State<AudiometryExercisePage> {
 
   @override
   void initState() {
+    // TODO: implement initState
     super.initState();
     InitValues();
     TestRecord.mode = "练习模式";
@@ -283,12 +237,15 @@ class AudiometryExercisePageState extends State<AudiometryExercisePage> {
           children: [
             MyHeader(
               image: "assets/icons/Drcorona.svg",
-              textTop:
-                  "L${TestRecord.tableId}  S${_playIndexList[_playIndex == _playSumNumber ? _playIndex - 1 : _playIndex]}\n累计正确率：",
+              textTop: "L" +
+                  TestRecord.tableId.toString() +
+                  "  S" +
+                  _playIndexList[_playIndex - 1 < 0 ? 0 : _playIndex - 1]
+                      .toString() +
+                  "\n累计正确率：",
               textBottom: _strAccuracy,
               offset: offset,
             ),
-
             const Text(
               '请勾选被试者复述正确的词：',
               style: TextStyle(
@@ -337,15 +294,13 @@ class AudiometryExercisePageState extends State<AudiometryExercisePage> {
                 SizedBox(
                     width: SizeConfig.screenWidth * 0.25,
                     child: OutlinedButton(
-                        onPressed: returnText == "中止"
-                            ? () {
-                                setState(() {
-                                  for (int i = 0; i < _keywordNumber; i++) {
-                                    keyWords[i]["check"] = true;
-                                  }
-                                });
-                              }
-                            : null,
+                        onPressed: () {
+                          setState(() {
+                            for (int i = 0; i < _keywordNumber; i++) {
+                              keyWords[i]["check"] = true;
+                            }
+                          });
+                        },
                         style: ButtonStyle(
                             shape: MaterialStateProperty.all(
                                 RoundedRectangleBorder(
@@ -368,7 +323,35 @@ class AudiometryExercisePageState extends State<AudiometryExercisePage> {
                             '全对',
                             style: Styles.buttonTextStyle,
                           ),
-                        ]))),
+                        ]))
+                    // ignore: deprecated_member_use
+                    /*  FlatButton.icon(
+                    padding: const EdgeInsets.symmetric(
+                      vertical: 0.0,
+                      horizontal: 0.0,
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        for (int i = 0; i < _keywordNumber; i++) {
+                          keyWords[i]["check"] = true;
+                        }
+                      });
+                    },
+                    color: Colors.blue,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(30.0),
+                    ),
+                    icon: const Icon(
+                      Icons.check,
+                      color: Colors.white,
+                    ),
+                    label: const Text(
+                      '全对',
+                      style: Styles.buttonTextStyle,
+                    ),
+                    textColor: Colors.white,
+                  ), */
+                    ),
                 Padding(
                     padding: EdgeInsets.all(
                   SizeConfig.screenWidth * 0.02,
@@ -376,15 +359,13 @@ class AudiometryExercisePageState extends State<AudiometryExercisePage> {
                 SizedBox(
                   width: SizeConfig.screenWidth * 0.25,
                   child: OutlinedButton(
-                      onPressed: returnText == "中止"
-                          ? () {
-                              setState(() {
-                                for (int i = 0; i < _keywordNumber; i++) {
-                                  keyWords[i]["check"] = false;
-                                }
-                              });
-                            }
-                          : null,
+                      onPressed: () {
+                        setState(() {
+                          for (int i = 0; i < _keywordNumber; i++) {
+                            keyWords[i]["check"] = false;
+                          }
+                        });
+                      },
                       style: ButtonStyle(
                           shape: MaterialStateProperty.all(
                               RoundedRectangleBorder(
@@ -407,163 +388,86 @@ class AudiometryExercisePageState extends State<AudiometryExercisePage> {
                           '全不对',
                           style: Styles.buttonTextStyle,
                         ),
-                      ])),
+                      ]))
+                  // ignore: deprecated_member_use
+                  /* FlatButton.icon(
+                    padding: const EdgeInsets.symmetric(
+                      vertical: 0.0,
+                      horizontal: 0.0,
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        for (int i = 0; i < _keywordNumber; i++) {
+                          keyWords[i]["check"] = false;
+                        }
+                      });
+                    },
+                    color: Colors.red,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(30.0),
+                    ),
+                    icon: const Icon(
+                      Icons.clear,
+                      color: Colors.white,
+                    ),
+                    label: const Text(
+                      '全不对',
+                      style: Styles.buttonTextStyle,
+                    ),
+                    textColor: Colors.white,
+                  ) */
+                  ,
                 ),
-                SizedBox(width: getProportionateScreenWidth(15)),
-                isDone
-                    ? const Icon(
-                        Icons.done,
-                        size: 30,
-                        color: Colors.green,
-                      )
-                    : const Icon(size: 30, Icons.done),
               ],
             ),
             SizedBox(height: SizeConfig.screenHeight * 0.05),
 
-            Row(
-              mainAxisAlignment: _playIndex == 0
-                  ? MainAxisAlignment.center
-                  : MainAxisAlignment.spaceEvenly,
-              children: [
-                Offstage(
-                  offstage: _playIndex == 0,
-                  child: SizedBox(
-                    width: SizeConfig.screenWidth * 0.4,
-                    child: DefaultButton(
-                      text: "上一句",
-                      press: () async {
-                        if (_playIndex > 0) {
-                          setState(() {
-                            if (_playIndex < _playSumNumber) {
-                              // doneList[_playIndex] = true;  // 是否需要给与上一句确认完成的权限
-                              int rightNumber = 0;
-                              for (int i = 0; i < _keywordNumber; i++) {
-                                if (keyWords[i]["check"] == true) {
-                                  rightNumber++;
-                                }
-                                keywordsList[_playIndex][i] =
-                                    keyWords[i]["check"];
-                              }
-                              correctNumList[_playIndex] = rightNumber;
-
-                              _maxPlayIndex = doneList.lastIndexOf(true);
-                              _accuracy = getAccuracy();
-                              _strAccuracy =
-                                  "${_accuracy.toInt()} %"; // 更新界面显示正确率
-                            }
-                            _playIndex--;
-                          });
-                        }
-                        AutoProcess();
-                      },
-                    ),
-                  ),
-                ),
-                // _playIndex == 0
-                //     ? Container(width: 0,)
-                //     :
-                // 下一句
-                SizedBox(
-                  width: SizeConfig.screenWidth * (_playIndex == 0 ? 0.8 : 0.4),
-                  child: DefaultButton(
-                    text: tipText,
-                    press: () {
-                      setState(() {
-                        if (returnText == "中止") {
-                          doneList[_playIndex] = true;
-                          if (_playIndex < _playSumNumber) {
-                            int rightNumber = 0;
-                            for (int i = 0; i < _keywordNumber; i++) {
-                              if (keyWords[i]["check"] == true) {
-                                rightNumber++;
-                              }
-                              keywordsList[_playIndex][i] =
-                                  keyWords[i]["check"];
-                            }
-                            correctNumList[_playIndex] = rightNumber;
-                            // 每张表第一句语句不计入正确率计算
-                            // _sumNumber = _sumNumber + _keywordNumber; // 更新已经播放的关键词总个数
-                            // _accuracy = _rightNumber / _sumNumber * 100; // 更新正确率
-                            // _maxPlayIndex 为已完成的语句的最大索引
-                            _maxPlayIndex = doneList.lastIndexOf(true);
-                            _accuracy = getAccuracy();
-                            _strAccuracy =
-                                "${_accuracy.toInt()} %"; // 更新界面显示正确率
+            /// 下一句按钮
+            SizedBox(
+              width: SizeConfig.screenWidth * 0.8,
+              child: DefaultButton(
+                text: tipText,
+                press: () {
+                  setState(() {
+                    if (returnText == "中止") {
+                      // 更新本句中的识别正确的个数
+                      if (_playIndex > 1 && _playIndex <= _playSumNumber) {
+                        for (int i = 0; i < _keywordNumber; i++) {
+                          if (keyWords[i]["check"] == true) {
+                            _rightNumber++;
                           }
-
-                          // 增加 1
-                          if (_playIndex < _playSumNumber) {
-                            setState(() {
-                              _playIndex++;
-                            });
-                          }
-                          // 更新本句中的识别正确的个数
-
-                          AutoProcess();
                         }
-                      });
-                    },
-                  ),
-                ),
-              ],
+                        // 每张表第一句语句不计入正确率计算
+                        _sumNumber =
+                            _sumNumber + _keywordNumber; // 更新已经播放的关键词总个数
+                        _accuracy = _rightNumber / _sumNumber * 100; // 更新正确率
+                        _strAccuracy =
+                            _accuracy.toInt().toString() + " %"; // 更新界面显示正确率
+                      }
+                      AutoProcess();
+                    }
+                  });
+                },
+              ),
             ),
-
             SizedBox(height: SizeConfig.screenHeight * 0.03),
 
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                SizedBox(
-                  width: SizeConfig.screenWidth * 0.4,
-                  child: DefaultBorderButton(
-                    text: "重播",
-                    press: () async {
-                      print(_playIndex);
-                      stop();
-                      play();
-                    },
-                  ),
-                ),
-
-                /// 中止按钮
-                SizedBox(
-                  width: SizeConfig.screenWidth * 0.4,
-                  child: DefaultBorderButton(
-                    text: returnText,
-                    press: () {
-                      stop();
-
-                      /// 路由跳转
-                      Navigator.of(context).push(MaterialPageRoute(
-                          builder: (context) => SettingAudioPage()));
-                    },
-                  ),
-                ),
-              ],
+            /// 中止按钮
+            SizedBox(
+              width: SizeConfig.screenWidth * 0.8,
+              child: DefaultBorderButton(
+                text: returnText,
+                press: () {
+                  /// 路由跳转
+                  Navigator.of(context).push(MaterialPageRoute(
+                      builder: (context) => SettingAudioPage()));
+                },
+              ),
             ),
           ],
         ),
       ),
     );
-  }
-
-  double getAccuracy() {
-    
-    if (_maxPlayIndex < 1) {
-      return 0.0;
-    }
-    return 100.0 *
-        sum(correctNumList.sublist(1, _maxPlayIndex + 1)) /
-        sum(keywordsNumList.sublist(1, _maxPlayIndex + 1));
-  }
-
-  int sum(List numbers) {
-    int s = 0;
-    for (int n in numbers) {
-      s += n;
-    }
-    return s;
   }
 
   TextSpan keyWordsTextSpan(String key, var value) {

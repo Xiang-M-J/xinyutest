@@ -27,6 +27,8 @@ class _SubjectManagementFormState extends State<SubjectManagementForm> {
 
   DateTime? newDate = DateTime.now();
 
+  late StateSetter _deleteSetter;
+
   var dio = DioClient.dio;
   String searchName = '';
 
@@ -103,10 +105,6 @@ class _SubjectManagementFormState extends State<SubjectManagementForm> {
                     press: () {
                       /// 检查是否只有一位被试被选中
                       int isChecked_Count = 0;
-                      if (SubjectsList.subjects == null){
-                        AppTool().showDefineAlert(context, "警告", "无可编辑用户");
-                        return;
-                      }
                       for (int i = 0; i < SubjectsList.subjects.length; i++) {
                         if (SubjectsList.subjects[i]["check"] == true) {
                           isChecked_Count++;
@@ -119,7 +117,7 @@ class _SubjectManagementFormState extends State<SubjectManagementForm> {
                             .showDefineAlert(context, "警告", "编辑用户一次只可选中一位！");
                       } else if (isChecked_Count == 1) {
                         // 若只有一位则更新标志位,并进入编辑页面
-                        TestRecord.isNewSubject = false;
+                        TestRecord.isNewSubject = 0;
 
                         Navigator.pushNamed(context, SubjectScreen.routeName);
                       } else {
@@ -145,6 +143,7 @@ class _SubjectManagementFormState extends State<SubjectManagementForm> {
                         int isChecked_Count = 0;
                         int isSucceed = 0;
                         int isFailed = 0;
+                        var tmpList = [];   // 存储未被删除的数据
                         for (int i = 0; i < SubjectsList.subjects.length; i++) {
                           if (SubjectsList.subjects[i]["check"] == true) {
                             isChecked_Count++;
@@ -160,11 +159,9 @@ class _SubjectManagementFormState extends State<SubjectManagementForm> {
                               var status = res["status"] as int;
                               if (status == 0) {
                                 isSucceed++;
-                                setState(() {
-                                  _getSubjects();
-                                });
                               } else {
                                 isFailed++;
+                                tmpList.add(SubjectsList.subjects[i]);
                               }
                             } catch (e) {
                               setState(() {
@@ -174,8 +171,11 @@ class _SubjectManagementFormState extends State<SubjectManagementForm> {
                               });
                               return;
                             }
+                          }else{
+                            tmpList.add(SubjectsList.subjects[i]);
                           }
                         }
+                        
                         String tips = '';
                         if (isChecked_Count == 0) {
                           tips = '未选中用户！';
@@ -188,8 +188,13 @@ class _SubjectManagementFormState extends State<SubjectManagementForm> {
                             tips += '失败' + isSucceed.toString() + '位.';
                           }
                         }
+                       
                         AppTool().showDefineAlert(context, '提示', tips);
+
+                        SubjectsList.subjects = tmpList;
+                        _deleteSetter(() {});
                         setState(() {});
+                        
                       }
                     },
                   ),
@@ -205,7 +210,7 @@ class _SubjectManagementFormState extends State<SubjectManagementForm> {
               searchName = value;
               try {
                 var response = await dio.get(
-                  DioClient.baseurl + '/api/subject/name/' + searchName,
+                  DioClient.baseurl + '/api/subject/' + searchName,
                 );
                 var res = response.data;
                 var status = res["status"] as int;
@@ -251,11 +256,15 @@ class _SubjectManagementFormState extends State<SubjectManagementForm> {
             },
           ),
           SizedBox(height: getProportionateScreenHeight(20)),
-          SizedBox(
-            height: getProportionateScreenHeight(480),
-            width: SizeConfig.screenWidth,
-            child: SubjectListView(),
-          ),
+          StatefulBuilder(
+              builder: (BuildContext context, StateSetter stateSetter) {
+            _deleteSetter = stateSetter;
+            return SizedBox(
+              height: getProportionateScreenHeight(480),
+              width: SizeConfig.screenWidth,
+              child: SubjectListView(),
+            );
+          })
         ],
       ),
     );

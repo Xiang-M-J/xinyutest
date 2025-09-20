@@ -1,5 +1,5 @@
 import 'dart:async';
-import 'package:xinyutest/screens/audiogram/audiogrampage.dart';
+import 'package:xinyutest/Global/local_service.dart';
 import 'package:xinyutest/screens/sgin_in/sign_in_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bluetooth_serial/flutter_bluetooth_serial.dart';
@@ -53,29 +53,27 @@ class HomeScreenState extends State<HomeScreen> {
   void checkIsCalibration(bool isJump) async {
     try {
       print("checkIsCalibration:" + CalibrationValue.testedDevice);
-      String str = CalibrationValue.testingDevice +
-          ',' +
-          CalibrationValue.testedDevice +
-          ',' +
-          DateTime.now().toString();
+      // String str = CalibrationValue.testingDevice +
+      //     ',' +
+      //     CalibrationValue.testedDevice +
+      //     ',' +
+      //     DateTime.now().toString();
       // print(str);
       // print('success');
-      var response = await dio
-          .get(DioClient.baseurl + '/api/devicecalibration/' + str); //从API中获取信息
-      var res = response.data;
-      var status = res["status"] as int;
+      // var response = await dio
+      //     .get(DioClient.baseurl + '/api/devicecalibration/' + str); //从API中获取信息
+      var response = await getCalibrationResponse(CalibrationValue.testingDevice, CalibrationValue.testingDevice);
+      print(response);
+      var status = response.status;
       isChecked = true;
       if (status == 0) {
         setState(() {
-          var responseData = res["data"];
-          CalibrationValue.micCalibrationDB =
-              responseData["microphoneCalibrationValue"];
-          CalibrationValue.calibrationDB =
-              responseData["speakerCalibrationValue"];
-          num temp = responseData["playVolume"];
-          CalibrationValue.calibrationVolume = temp.toDouble();
+          CalibrationValue.micCalibrationDB = response.micCalibrationDB;
+          CalibrationValue.calibrationDB = response.calibrationDB;
+          CalibrationValue.calibrationVolume = response.playVolume;
           isCalibration = true;
-          print(responseData);
+          // print(responseData);
+
           //应填入isCalibration && isJump,原为isJump
           if (isJump) {
             /// 路由跳转
@@ -84,7 +82,6 @@ class HomeScreenState extends State<HomeScreen> {
           }
         });
       } else {
-        var error = res["error"];
         setState(() {
           isCalibration = false;
           if (isJump) {
@@ -244,20 +241,19 @@ class HomeScreenState extends State<HomeScreen> {
             left: size.width * 0.04,
             top: size.height * 0.05,
             right: size.width * 0.03),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+        child: ListView(
           children: <Widget>[
-            // Row(
-            //   mainAxisAlignment:
-            //       MainAxisAlignment.spaceBetween, //首尾与其他组件无空隙均匀分布
-            //   children: <Widget>[
-            //     SvgPicture.asset("assets/icons/menu.svg"),
-            //     SvgPicture.asset("assets/icons/User.svg"),
-            //   ],
-            // ),
-            // SizedBox(
-            //   height: size.height * 0.05,
-            // ),
+            Row(
+              mainAxisAlignment:
+                  MainAxisAlignment.spaceBetween, //首尾与其他组件无空隙均匀分布
+              children: <Widget>[
+                SvgPicture.asset("assets/icons/menu.svg"),
+                SvgPicture.asset("assets/icons/User.svg"),
+              ],
+            ),
+            SizedBox(
+              height: size.height * 0.05,
+            ),
             const Text("中文语句识别率测试", style: kHeadingextStyle),
             SizedBox(
               height: size.height * 0.05,
@@ -343,7 +339,8 @@ class HomeScreenState extends State<HomeScreen> {
                 // print(GlobalBlueToothArgs().isConnected ? "未连接设备" : ("已连接设备：" + GlobalBlueToothArgs.curAddress));
                 //==============================================================================
                 // 若未开启蓝牙则打开蓝牙
-                openBluetooth();
+                Navigator.of(context).push(MaterialPageRoute(builder: (context) => const WaterRipples()));
+                // openBluetooth();
                 //==============================================================================
               },
             ),
@@ -386,32 +383,25 @@ class HomeScreenState extends State<HomeScreen> {
               ),
               //跳转
               onTap: () async {
-                /// 测试用
-                // Navigator.of(context).push(
-                //     MaterialPageRoute(builder: (context) => GetSubjectPage()));
+                // /// 测试用
+                Navigator.of(context).push(
+                    MaterialPageRoute(builder: (context) => GetSubjectPage()));
 
-                getDeviceInfo(true);
+                // getDeviceInfo(true);
               },
             ),
-            SizedBox(
-              height: size.height * 0.02,
-            ),
+
             DefaultBorderButton(
                 text: '退出登录',
                 press: () {
-                  setState(() {
-                        Navigator.of(context).push(MaterialPageRoute(
-                            builder: (context) => audiogramPage()));
-                        // Navigator.of(context).push(MaterialPageRoute(
-                        //     builder: (context) =>
-                        //         LoginSuccessScreen(textValue: true)));
-                      });
-                  // Navigator.pushNamed(context, SignInScreen.routeName);
+                  Navigator.pushNamed(context, SignInScreen.routeName);
                 }),
             SizedBox(
               height: size.height * 0.03,
             ),
-            Text("版本：" + Version.version),
+            Text(
+              "版本号：" + Version.version,
+            ),
           ],
         ),
       ),

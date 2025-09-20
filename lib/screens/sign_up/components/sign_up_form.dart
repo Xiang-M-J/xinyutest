@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:dio/dio.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:xinyutest/Global/local_service.dart';
 import '../../../Global/dio_client.dart';
 import '../../../components/AppTool.dart';
 import '../../../components/custom_surfix_icon.dart';
@@ -65,50 +66,55 @@ class _SignUpFormState extends State<SignUpForm> {
           DefaultButton(
             text: "注册",
             press: () async {
-              
-              // if (_formKey.currentState!.validate()) {
-              //   _formKey.currentState!.save();
-              //   try {
-              //     var requestData = {
-              //       "phoneNumber": phone,
-              //       "realName": name,
-              //       "password": password,
-              //       "role": permission == '数据主管' ? 'Admin' : 'Normal',
-              //       "organizationUniqueCode": organization_id
-              //     };
-              //     var response = await dio.post(
-              //         DioClient.baseurl + '/api/interviewer/register',
-              //         data: requestData);
-              //     var res = response.data;
-              //     var status = res["status"] as int;
-              //     status = 0;
-              //     if (status == 0) {
-              //       var responseData = res["data"];
+              if (_formKey.currentState!.validate()) {
+                _formKey.currentState!.save();
+                try {
+                  var requestData = {
+                    "phoneNumber": phone,
+                    "realName": name,
+                    "password": password,
+                    "role": permission == '数据主管' ? 'Admin' : 'Normal',
+                    "organizationUniqueCode": organization_id
+                  };
+                  // var response = await dio.post(
+                  //     DioClient.baseurl + '/api/interviewer/register',
+                  //     data: requestData);
 
-              //       var id = responseData["id"];
+                  var response = await postLocalRegister(requestData);
+                  var res = response.data;
+                  var status = res["status"] as int;
 
-              //       // if all are valid then go to success screen
-              //       Navigator.of(context).push(MaterialPageRoute(
-              //           builder: (context) =>
-              //               LoginSuccessScreen(textValue: false)));
-              //     } else {
-              //       var error = res["error"];
-              //       setState(() {
-              //         /// 警告，提示对话框
-              //         AppTool().showDefineAlert(context, "警告", error);
-              //       });
-              //     }
-              //   } catch (e) {
-              //     setState(() {
-              //       /// 警告，提示对话框
-              //       AppTool().showDefineAlert(context, "警告", e.toString());
-              //     });
-              //     return;
-              //   }
-              // }
+                  // var response = await postLocalRegister(requestData);
+
+                  // int status = response.status;
+
+                  if (status == 0) {
+                    // var responseData = res.data;
+
+                    // var id = responseData["id"];
+
+                    // if all are valid then go to success screen
+                    Navigator.of(context).push(MaterialPageRoute(
+                        builder: (context) =>
+                            LoginSuccessScreen(textValue: false)));
+                  } else {
+                    var error = res['error'];
+                    setState(() {
+                      /// 警告，提示对话框
+                      AppTool().showDefineAlert(context, "警告", error);
+                    });
+                  }
+                } catch (e) {
+                  setState(() {
+                    /// 警告，提示对话框
+                    AppTool().showDefineAlert(context, "警告", e.toString());
+                  });
+                  return;
+                }
+              }
               //测试用
-              Navigator.of(context).push(MaterialPageRoute(
-                  builder: (context) => LoginSuccessScreen(textValue: false)));
+              // Navigator.of(context).push(MaterialPageRoute(
+              //     builder: (context) => LoginSuccessScreen(textValue: false)));
             },
           ),
           SizedBox(height: getProportionateScreenHeight(20)),

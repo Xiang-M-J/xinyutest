@@ -149,10 +149,7 @@ class _SubjectRecordFormState extends State<SubjectRecordForm> {
             return Column(children: [
               ListTile(
                 title: Text(
-                    "模式: " +
-                        e["mode"] +
-                        "\n" +
-                        "时间：" +
+                    "时间：" +
                         e["createTime"].toString().substring(0, 16) +
                         "\n" +
                         "正确率：" +

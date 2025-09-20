@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:xinyutest/Global/dio_client.dart';
+import 'package:xinyutest/Global/local_service.dart';
 import 'package:xinyutest/Global/user_role.dart';
 
 import '../../../components/AppTool.dart';
@@ -34,7 +35,6 @@ class _SignFormState extends State<SignForm> {
 
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
     _gainUsers();
   }
@@ -94,49 +94,52 @@ class _SignFormState extends State<SignForm> {
             text: "登录",
             press: //登录判断操作！
                 () async {
-              // if (_formKey.currentState!.validate()) {
-              //   _formKey.currentState!.save();
-              //   try {
-              //     var requestData = {
-              //       "phoneNumber": phone,
-              //       "password": password,
-              //     };
-              //     var response = await dio.post(
-              //         DioClient.baseurl + '/api/interviewer/login',
-              //         data: requestData);
-              //     var res = response.data;
-              //     var role = res["data"];
-              //     var status = res["status"] as int;
-              //     status = 0;
-              //     if (status == 0) {
-              //       UserRole.role = role["role"] == "Admin" ? "数据主管" : "数据收集";
+              if (_formKey.currentState!.validate()) {
+                _formKey.currentState!.save();
+                try {
+                  var requestData = {
+                    "phoneNumber": phone,
+                    "password": password,
+                  };
+                  // var response = await dio.post(
+                  //     DioClient.baseurl + '/api/interviewer/login',
+                  //     // DioClient.baseurl + "/api/Interviewers/login",
+                  //     data: requestData);
 
-              //       if (remember) {
-              //         /// 保存账号密码到本地，用于下次直接登录
-              //         User _user = User(phone!, password!, remember);
-              //         SharedPreferenceUtil.saveUser(_user);
-              //       }
 
-              //       Navigator.pushNamed(context, HomeScreen.routeName);
-              //     } else {
-              //       var error = res["error"];
-              //       setState(() {
-              //         /// 警告，提示对话框
-              //         AppTool().showDefineAlert(context, "警告", error);
-              //       });
-              //     }
-              //   } catch (e) {
-              //     setState(() {
-              //       /// 警告，提示对话框
-              //       AppTool().showDefineAlert(context, "错误", '请输入所有项或检查网络连接！');
-              //     });
-              //     return;
-              //   }
-              // }
+                  var response = await postLocalLogin(requestData);
+                  var role = response.role;
+                  var status = response.status;
+                  if (status == 0) {
+                    UserRole.role = role == "Admin" ? "数据主管" : "数据收集";
+
+                    if (remember) {
+                      /// 保存账号密码到本地，用于下次直接登录
+                      User _user = User(phone!, password!, remember);
+                      SharedPreferenceUtil.saveUser(_user);
+                    }
+
+                    Navigator.pushNamed(context, HomeScreen.routeName);
+                  } else {
+                    var error = response.error;
+                    setState(() {
+                      /// 警告，提示对话框
+                      AppTool().showDefineAlert(context, "警告", error);
+                    });
+                  }
+                } catch (e) {
+                  setState(() {
+                    /// 警告，提示对话框
+                    // AppTool().showDefineAlert(context, "错误", '请输入所有项或检查网络连接！');
+                    AppTool().showDefineAlert(context, "错误", e.toString());
+                  });
+                  return;
+                }
+              }
 
               // 仅用作测试
               // KeyboardUtil.hideKeyboard(context);
-              Navigator.pushNamed(context, HomeScreen.routeName);
+              // Navigator.pushNamed(context, HomeScreen.routeName);
               // //
               // if (_formKey.currentState!.validate()) {
               //   _formKey.currentState!.save();

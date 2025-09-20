@@ -11,7 +11,6 @@ import '../../../config/constants.dart';
 import '../../../config/size_config.dart';
 import '../../login_success/login_success_screen.dart';
 import 'package:xinyutest/Global/test_record.dart';
-import 'package:xinyutest/screens/audiogram/audiogrampage.dart';
 
 class SubjectForm extends StatefulWidget {
   @override
@@ -25,7 +24,7 @@ class _SubjectFormState extends State<SubjectForm> {
   String sex = '';
   String birthday = '';
   String putonghua_level = '';
-  String phone = ' ';
+  String phone = '';
   String wearlog = '';
 
   ///
@@ -54,9 +53,9 @@ class _SubjectFormState extends State<SubjectForm> {
   }
 
   Future<void> _getSubjectInfo() async {
-    if (!TestRecord.isNewSubject) {
+    if (TestRecord.isNewSubject == 0) {
       isNew = false;
-      TestRecord.isNewSubject = true;
+      TestRecord.isNewSubject = -1;
       try {
         var response = await dio.get(
           DioClient.baseurl + '/api/subject/' + TestRecord.subjectId.toString(),
@@ -125,7 +124,7 @@ class _SubjectFormState extends State<SubjectForm> {
           FormError(errors: errors),
           SizedBox(height: getProportionateScreenHeight(30)),
           DefaultButton(
-            text: "下一步",
+            text: "保存",
             press: () async {
               //测试代码
               // Navigator.of(context).push(MaterialPageRoute(
@@ -156,13 +155,11 @@ class _SubjectFormState extends State<SubjectForm> {
                     var status = res["status"] as int;
                     if (status == 0) {
                       var responseData = res["data"];
-                      TestRecord.subjectId = responseData["id"] as int;
+
                       setState(() {
                         Navigator.of(context).push(MaterialPageRoute(
-                            builder: (context) => audiogramPage()));
-                        // Navigator.of(context).push(MaterialPageRoute(
-                        //     builder: (context) =>
-                        //         LoginSuccessScreen(textValue: true)));
+                            builder: (context) =>
+                                LoginSuccessScreen(textValue: true)));
                       });
                     } else {
                       var error = res["error"];
@@ -177,7 +174,7 @@ class _SubjectFormState extends State<SubjectForm> {
                             '/api/subject/' +
                             TestRecord.subjectId.toString(),
                         data: requestData);
-
+                    
                     var res = response.data;
                     var status = res["status"] as int;
                     if (status == 0) {
@@ -185,7 +182,8 @@ class _SubjectFormState extends State<SubjectForm> {
 
                       setState(() {
                         Navigator.of(context).push(MaterialPageRoute(
-                            builder: (context) => audiogramPage()));
+                            builder: (context) =>
+                                LoginSuccessScreen(textValue: true)));
                       });
                     } else {
                       var error = res["error"];
@@ -364,26 +362,21 @@ class _SubjectFormState extends State<SubjectForm> {
       //onSaved: (newValue) => phone = newValue,
       onChanged: (value) {
         phone = value;
-        if (value.isEmpty) {
-          value = '18888888888';
-          phone = value;
+        if (value.isNotEmpty) {
+          removeError(
+              error:
+                  kPhoneNumberNullError); //kPhoneNumberNullError = "请输入你的手机号码"
         }
         if (phoneValidatorRegExp.hasMatch(value)) {
           removeError(
               error: kInvalidPhoneError); //kInvalidPhoneError = "请输入有效的手机号码"
         }
       },
-      onSaved: (newValue) {
-        if (newValue!.isEmpty) {
-          setState(() {
-            newValue = '18888888888';
-            phone = '';
-          });
-        }
-      },
-
       validator: (value) {
-        if (!phoneValidatorRegExp.hasMatch(value!) && value.isNotEmpty) {
+        if (value!.isEmpty) {
+          addError(error: kPhoneNumberNullError);
+          return "";
+        } else if (!phoneValidatorRegExp.hasMatch(value)) {
           addError(error: kInvalidPhoneError);
           return "";
         }

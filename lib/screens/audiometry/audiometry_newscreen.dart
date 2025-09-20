@@ -1,5 +1,3 @@
-import 'dart:math';
-
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -97,7 +95,7 @@ class AudiometryScreenPageState extends State<AudiometryScreenPage> {
   List _playIndexList = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
 
   ///存储语句测试详情
-  List<List> _result = List.empty(growable: true);
+  List _result = List.empty(growable: true);
 
   ///全部音频路径，用于删除
   List delAudioPath = List.empty(growable: true);
@@ -105,7 +103,7 @@ class AudiometryScreenPageState extends State<AudiometryScreenPage> {
   ///存储全部测试音频
   List audioList = List.empty(growable: true);
 
-  // 储存测试音频的关键字数量
+    // 储存测试音频的关键字数量
   List keywordsNumList = List.empty(growable: true);
 
   // 储存每一句音频的正确关键字数量
@@ -120,8 +118,6 @@ class AudiometryScreenPageState extends State<AudiometryScreenPage> {
   // 每条语句是否已经测试过
   List<bool> doneList = List.empty(growable: true);
   bool isDone = false;
-
-  bool isStart = false; // 是否开始
 
   void getSource() async {
     try {
@@ -152,10 +148,6 @@ class AudiometryScreenPageState extends State<AudiometryScreenPage> {
         keywordsList = List.generate(
             _playSumNumber, (index) => List.empty(growable: true));
         doneList = List.generate(_playSumNumber, (index) => false);
-        _result = List.generate(
-            _playSumNumber, (index) => List.empty(growable: true));
-        audioList = List.generate(_playSumNumber, (index) => null);
-
         // AutoProcess();
       } else {
         var error = res["error"];
@@ -174,7 +166,7 @@ class AudiometryScreenPageState extends State<AudiometryScreenPage> {
   }
 
   /// 言语测听流程
-  void AutoProcess({bool autoplay = true}) {
+  void AutoProcess() {
     try {
       setState(() {
         if (_playIndex < _playSumNumber) {
@@ -183,33 +175,14 @@ class AudiometryScreenPageState extends State<AudiometryScreenPage> {
           var tempk = responseData[_playIndexList[_playIndex]]["keywords"];
           // 更新用于生成界面关键词组件的列表
           keyWords = tempk;
-          // for (int i = 0;
-          //     i < responseData[_playIndexList[_playIndex]]["keywordNumber"];
-          //     i++) {
-          //   keyWords[i]["check"] = false;
-          // }
-
-          // 第一次测试句子，没有关键字
-          if (keywordsList[_playIndex].isEmpty) {
-            for (int i = 0;
-                i < responseData[_playIndexList[_playIndex]]["keywordNumber"];
-                i++) {
-              keyWords[i]["check"] = false;
-              keywordsList[_playIndex].add(false);
-            }
+          for (int i = 0;
+              i < responseData[_playIndexList[_playIndex]]["keywordNumber"];
+              i++) {
+            keyWords[i]["check"] = false;
+            // var t = tempk[i];
+            // t["check"] = false;
+            // keyWords[i] = t;
           }
-          // 重复句子，存在关键字
-          else {
-            for (int i = 0;
-                i < responseData[_playIndexList[_playIndex]]["keywordNumber"];
-                i++) {
-              keyWords[i]["check"] = keywordsList[_playIndex][i];
-            }
-          }
-          keywordsNumList[_playIndex] = _keywordNumber;
-
-          isDone = doneList[_playIndex];
-
           // TestRecord.resultDetail["keyWordNumber"][_playIndex] = _keywordNumber;
           _wavName =
               responseData[_playIndexList[_playIndex]]["name"]; // 更新用于播放的音频名称
@@ -217,11 +190,9 @@ class AudiometryScreenPageState extends State<AudiometryScreenPage> {
           record(_wavName);
 
           // 播放音频
-          if (autoplay) {
-            play();
-          }
+          play();
+          _playIndex++;
           tipText = '下一句';
-          returnText = "中止";
         } else {
           tipText = '已完成所有语句';
           if (isSave == false) {
@@ -229,7 +200,7 @@ class AudiometryScreenPageState extends State<AudiometryScreenPage> {
             // SaveResult();
             TestRecord.result = _result;
             isSave = true;
-            // print(TestRecord.result);
+            print(TestRecord.result);
           }
           // 所有流程已结束，显示并记录结果
           AppTool().showDefineAlert(context, "提示", '测试结束！正确率：$_strAccuracy');
@@ -270,7 +241,7 @@ class AudiometryScreenPageState extends State<AudiometryScreenPage> {
       "audiolist": audioList
     });
     // print(requestData);
-    var response = await dio.post('${DioClient.baseurl}/api/testrecord',
+    var response = await dio.post(DioClient.baseurl + '/api/testrecord',
         data: requestData);
     var res = response.data;
     var status = res["status"] as int;
@@ -390,8 +361,12 @@ class AudiometryScreenPageState extends State<AudiometryScreenPage> {
           children: [
             MyHeader(
               image: "assets/icons/Drcorona.svg",
-              textTop:
-                  "L${TestRecord.tableId}  S${_playIndexList[_playIndex == _playSumNumber ? _playIndex - 1 : _playIndex]}\n累计正确率：",
+              textTop: "L" +
+                  TestRecord.tableId.toString() +
+                  "  S" +
+                  _playIndexList[_playIndex - 1 < 0 ? 0 : _playIndex - 1]
+                      .toString() +
+                  "\n累计正确率：",
               textBottom: _strAccuracy,
               offset: offset,
             ),
@@ -443,15 +418,13 @@ class AudiometryScreenPageState extends State<AudiometryScreenPage> {
                 SizedBox(
                     width: SizeConfig.screenWidth * 0.25,
                     child: OutlinedButton(
-                      onPressed: returnText == "中止"
-                          ? () {
-                              setState(() {
-                                for (int i = 0; i < _keywordNumber; i++) {
-                                  keyWords[i]["check"] = true;
-                                }
-                              });
-                            }
-                          : null,
+                      onPressed: () {
+                        setState(() {
+                          for (int i = 0; i < _keywordNumber; i++) {
+                            keyWords[i]["check"] = true;
+                          }
+                        });
+                      },
                       style: ButtonStyle(
                           padding: MaterialStateProperty.all(
                               const EdgeInsets.symmetric(
@@ -483,15 +456,13 @@ class AudiometryScreenPageState extends State<AudiometryScreenPage> {
                 SizedBox(
                     width: SizeConfig.screenWidth * 0.25,
                     child: OutlinedButton(
-                      onPressed: returnText == "中止"
-                          ? () {
-                              setState(() {
-                                for (int i = 0; i < _keywordNumber; i++) {
-                                  keyWords[i]["check"] = false;
-                                }
-                              });
-                            }
-                          : null,
+                      onPressed: () {
+                        setState(() {
+                          for (int i = 0; i < _keywordNumber; i++) {
+                            keyWords[i]["check"] = false;
+                          }
+                        });
+                      },
                       style: ButtonStyle(
                           padding: MaterialStateProperty.all(
                               const EdgeInsets.symmetric(
@@ -513,122 +484,127 @@ class AudiometryScreenPageState extends State<AudiometryScreenPage> {
                           style: Styles.buttonTextStyle,
                         ),
                       ]),
-                    )),
-                SizedBox(width: getProportionateScreenWidth(15)),
-                isDone
-                    ? const Icon(
-                        Icons.done,
-                        size: 30,
-                        color: Colors.green,
-                      )
-                    : const Icon(size: 30, Icons.done),
+                    )
+                    // ignore: deprecated_member_use
+                    /*  FlatButton.icon(
+                    padding: const EdgeInsets.symmetric(
+                      vertical: 0.0,
+                      horizontal: 0.0,
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        for (int i = 0; i < _keywordNumber; i++) {
+                          keyWords[i]["check"] = false;
+                        }
+                      });
+                    },
+                    color: Colors.red,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(30.0),
+                    ),
+                    icon: const Icon(
+                      Icons.clear,
+                      color: Colors.white,
+                    ),
+                    label: const Text(
+                      '全不对',
+                      style: Styles.buttonTextStyle,
+                    ),
+                    textColor: Colors.white,
+                  ), */
+                    ),
               ],
             ),
             SizedBox(height: SizeConfig.screenHeight * 0.05),
 
             /// 上一句，下一句
             Row(
-              mainAxisAlignment: _playIndex < 1
-                  ? MainAxisAlignment.center
-                  : MainAxisAlignment.spaceEvenly,
               children: [
-                _playIndex < 1
+                _playIndex == 0
                     ? Container()
                     : SizedBox(
-                        width: SizeConfig.screenWidth * 0.4,
+                        width: SizeConfig.screenWidth * 0.8,
                         child: DefaultButton(
                           text: "上一句",
                           press: () async {
-                            stop();
-                            await _recorder.closeRecorder();
-                            if (_playIndex < _playSumNumber) {
-                              // doneList[_playIndex] = true;
-                              int rightNumber = 0;
-                              for (int i = 0; i < _keywordNumber; i++) {
-                                if (keyWords[i]["check"] == true) {
-                                  rightNumber++;
+                            if (returnText == "中止") {
+                              //停止录音和播放
+                              stop();
+                              await _recorder.closeRecorder();
+                              // 更新识别正确的个数
+                              //if条件将第一句不计入正确率
+                              if (_playIndex > 0 &&
+                                  _playIndex <= _playSumNumber) {
+                                _result.add(
+                                    keyWords); //kerWords:keyword、nonSemIndex、check
+                                for (int i = 0; i < _keywordNumber; i++) {
+                                  _result[_playIndex - 1][i]
+                                      .remove("nonSemIndex"); //移除nonSemIndex
+                                  if (keyWords[i]["check"] == true) {
+                                    _rightNumber++;
+                                  }
                                 }
-                                keywordsList[_playIndex][i] =
-                                    keyWords[i]["check"];
-                              }
-                              correctNumList[_playIndex] = rightNumber;
 
-                              ///存储本句测试结果
-                              print(await File(recordAudioPath).exists());
-                              var temp =
-                                  await MultipartFile.fromFile(recordAudioPath);
-                              audioList[_playIndex] = temp;
-                              // print(audioList.length);
-                              if (!delAudioPath.contains(recordAudioPath)) {
+                                ///存储本句测试结果
+                                print(await File(recordAudioPath).exists());
+                                var temp = await MultipartFile.fromFile(
+                                    recordAudioPath);
+                                audioList.add(temp);
+                                print(audioList.length);
                                 delAudioPath.add(recordAudioPath);
+                                // 每张表第一句语句不计入正确率计算
+                                _sumNumber = _sumNumber +
+                                    _keywordNumber; // 更新已经播放的关键词总个数
+                                _accuracy =
+                                    _rightNumber / _sumNumber * 100; // 更新正确率
+                                _strAccuracy = _accuracy.toInt().toString() +
+                                    " %"; // 更新界面显示正确率
                               }
-                              _maxPlayIndex = doneList.lastIndexOf(true);
-                              _accuracy = getAccuracy();
-                              _strAccuracy =
-                                  "${_accuracy.toInt()} %"; // 更新界面显示正确率
+                              setState(
+                                () {},
+                              );
+                              AutoProcess();
                             }
-                            if (_playIndex > 0) {
-                              _playIndex--;
-                            }
-                            setState(() {});
-                            AutoProcess();
                           },
                         ),
                       ),
 
                 /// 下一句按钮
                 SizedBox(
-                  width: SizeConfig.screenWidth * (_playIndex >= 1 ? 0.4 : 0.8),
+                  width: SizeConfig.screenWidth * 0.8,
                   child: DefaultButton(
                     text: tipText,
                     press: () async {
                       if (returnText == "中止") {
+                        //停止录音和播放
                         stop();
                         await _recorder.closeRecorder();
-                        if (_playIndex < _playSumNumber) {
-                          if (tipText != "开始") {
-                            doneList[_playIndex] = true;
-                            int rightNumber = 0;
-                            if (_result[_playIndex].isEmpty) {
-                              _result[_playIndex] = keyWords;
-                              for (int i = 0; i < _keywordNumber; i++) {
-                                _result[_playIndex][i].remove("nonSemIndex");
-                              }
+                        // 更新识别正确的个数
+                        //if条件将第一句不计入正确率
+                        if (_playIndex > 0 && _playIndex <= _playSumNumber) {
+                          _result.add(
+                              keyWords); //kerWords:keyword、nonSemIndex、check
+                          for (int i = 0; i < _keywordNumber; i++) {
+                            _result[_playIndex - 1][i]
+                                .remove("nonSemIndex"); //移除nonSemIndex
+                            if (keyWords[i]["check"] == true) {
+                              _rightNumber++;
                             }
-                            for (int i = 0; i < _keywordNumber; i++) {
-                              if (keyWords[i]["check"] == true) {
-                                rightNumber++;
-                              }
-                              keywordsList[_playIndex][i] =
-                                  keyWords[i]["check"];
-                            }
-                            correctNumList[_playIndex] = rightNumber;
-
-                            ///存储本句测试结果
-                            print(await File(recordAudioPath).exists());
-                            var temp =
-                                await MultipartFile.fromFile(recordAudioPath);
-                            audioList[_playIndex] = temp;
-                            // print(audioList.length);
-                            if (!delAudioPath.contains(recordAudioPath)) {
-                                delAudioPath.add(recordAudioPath);
-                            }
-
-                            if (isStart) {
-                              _maxPlayIndex = doneList.lastIndexOf(true);
-                            }
-                            _accuracy = getAccuracy();
-                            _strAccuracy =
-                                "${_accuracy.toInt()} %"; // 更新界面显示正确率
                           }
-                        }
 
-                        // 由于第一句示例没有音频，如果已经开始才加1
-                        if (_playIndex < _playSumNumber && isStart) {
-                          _playIndex++;
-                        }
-                        if (!isStart) {
-                          isStart = true;
+                          ///存储本句测试结果
+                          print(await File(recordAudioPath).exists());
+                          var temp =
+                              await MultipartFile.fromFile(recordAudioPath);
+                          audioList.add(temp);
+                          print(audioList.length);
+                          delAudioPath.add(recordAudioPath);
+                          // 每张表第一句语句不计入正确率计算
+                          _sumNumber =
+                              _sumNumber + _keywordNumber; // 更新已经播放的关键词总个数
+                          _accuracy = _rightNumber / _sumNumber * 100; // 更新正确率
+                          _strAccuracy =
+                              _accuracy.toInt().toString() + " %"; // 更新界面显示正确率
                         }
                         setState(
                           () {},
@@ -644,24 +620,23 @@ class AudiometryScreenPageState extends State<AudiometryScreenPage> {
 
             ///
             Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
                 SizedBox(
-                  width: SizeConfig.screenWidth * 0.4,
+                  width: SizeConfig.screenWidth * 0.8,
                   child: DefaultBorderButton(
                     text: "重播",
-                    press: () {
+                    press: () async {
+                      print(_playIndex);
                       stop();
                       play();
                     },
                   ),
                 ),
                 SizedBox(
-                  width: SizeConfig.screenWidth * 0.4,
+                  width: SizeConfig.screenWidth * 0.8,
                   child: DefaultBorderButton(
                     text: returnText,
                     press: () async {
-                      stop();
                       if (returnText == '继续') {
                         var result = await showCupertinoModalPopup(
                             //等待底部提示框的pop反馈值
@@ -734,23 +709,6 @@ class AudiometryScreenPageState extends State<AudiometryScreenPage> {
         ),
       ),
     );
-  }
-
-  double getAccuracy() {
-    if (_maxPlayIndex < 0) {
-      return 0.0;
-    }
-    return 100.0 *
-        sum(correctNumList.sublist(0, _maxPlayIndex + 1)) /
-        sum(keywordsNumList.sublist(0, _maxPlayIndex + 1));
-  }
-
-  int sum(List numbers) {
-    int s = 0;
-    for (int n in numbers) {
-      s += n;
-    }
-    return s;
   }
 
 //将语句中的关键词标黑，虚词标蓝

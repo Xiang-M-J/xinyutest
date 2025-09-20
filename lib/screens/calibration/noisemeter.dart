@@ -158,7 +158,7 @@ class NoiseMeterPageState extends State<NoiseMeterPage> {
             // await _sceneLabel(recordFile);
             CalibrationValue.recordPath = tempAudioPath;
           } else {
-            AppTool().showDefineAlert(context, "提示", "声音录制失败！");
+            AppTool().showDefineAlert(context, "提示", "声音录制失败");
           }
           _timer?.cancel();
         }

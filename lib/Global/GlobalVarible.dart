@@ -28,7 +28,7 @@ class GlobalBlueToothArgs {
       List<DeviceWithAvailability>.empty(growable: true);
   static List<DeviceWithAvailability> devices2 =
       List<DeviceWithAvailability>.empty(growable: true);
-
+  
   static const timeout = Duration(seconds: 1);
 
   bool get isConnected => (connection?.isConnected ?? false);

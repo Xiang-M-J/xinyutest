@@ -85,6 +85,7 @@ class SettingAudioPageState extends State<SettingAudioPage> {
         for (int i = 0; i < temp.length; i++) {
           _tableList.add(temp[i].toString());
         }
+        print("hello: "+_tableList.join(","));
         setState(() {
           if (strMode == "Normal") {
             _tableList.shuffle(); // 打乱顺序
@@ -94,10 +95,14 @@ class SettingAudioPageState extends State<SettingAudioPage> {
             if (ExerciseInfo.isFirstExercise) {
               _tableList.removeAt(1);
               _table_index = _tableList[0];
+              print("hello: "+_tableList.join(","));
+
               ExerciseInfo.isFirstExercise = false;
             } else {
               _tableList.removeAt(0);
               _table_index = _tableList[0];
+              print("hello: "+_tableList.join(","));
+
               ExerciseInfo.isFirstExercise = true;
             }
           }
@@ -279,7 +284,7 @@ class SettingAudioPageState extends State<SettingAudioPage> {
                                         activeColor: kPrimaryColor,
                                         onChanged: (value) {
                                           setState(() {
-                                            _corpusPart = 1;
+                                            _corpusPart = 2;
                                             _corpus_type = '中';
                                           });
                                         }),
@@ -298,7 +303,7 @@ class SettingAudioPageState extends State<SettingAudioPage> {
                                         activeColor: kPrimaryColor,
                                         onChanged: (value) {
                                           setState(() {
-                                            _corpusPart = 1;
+                                            _corpusPart = 3;
                                             _corpus_type = '长';
                                           });
                                         }),
@@ -587,7 +592,7 @@ class SettingAudioPageState extends State<SettingAudioPage> {
                       if (isFirstSession) {
                         /// '无助听状态'被视为首次访视Session，必须完成两张练习表访客执行正式测试
                         if (_testMode == '正式测听模式') {
-                          if (ExerciseInfo.TableNumber_Finished >= 1) {
+                          if (ExerciseInfo.TableNumber_Finished >= 2) {
                             /// 已完成两张练习表
                             SaveSetting();
                             Navigator.of(context).push(MaterialPageRoute(
@@ -598,7 +603,7 @@ class SettingAudioPageState extends State<SettingAudioPage> {
                             /// 未完成两张练习表
                             setState(() {
                               AppTool().showDefineAlert(
-                                  context, "提示", '该状态下必须先完成一张练习表！');
+                                  context, "提示", '该状态下必须先完成二张练习表！');
                             });
                           }
                         } else {

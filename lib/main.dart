@@ -21,7 +21,6 @@ void main() async {
       // DeviceOrientation.landscapeRight,
     ],
   );
-
   runApp(const MyApp());
 }
 
@@ -81,7 +80,7 @@ class MyApp extends StatelessWidget {
     _getPermission2();
 
     GlobalBlueToothArgs().detectDevice();
-    print("main：" + CalibrationValue.testedDevice);
+    print("main：${CalibrationValue.testedDevice}");
 
     return MaterialApp(
       debugShowCheckedModeBanner: false,
@@ -100,7 +99,7 @@ class MyApp extends StatelessWidget {
       // 设置文字大小不随系统设置改变
       builder: (context, widget) {
         return MediaQuery(
-          data: MediaQuery.of(context).copyWith(textScaleFactor: 1.0),
+          data: MediaQuery.of(context).copyWith(textScaler: const TextScaler.linear(1.0)),
           child: widget as Widget,
         );
       },

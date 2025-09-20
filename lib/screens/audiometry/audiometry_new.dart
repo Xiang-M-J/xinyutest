@@ -436,7 +436,6 @@ class AudiometryExercisePageState extends State<AudiometryExercisePage> {
                         if (_playIndex > 0) {
                           setState(() {
                             if (_playIndex < _playSumNumber) {
-                              // doneList[_playIndex] = true;  // 是否需要给与上一句确认完成的权限
                               int rightNumber = 0;
                               for (int i = 0; i < _keywordNumber; i++) {
                                 if (keyWords[i]["check"] == true) {
@@ -447,7 +446,6 @@ class AudiometryExercisePageState extends State<AudiometryExercisePage> {
                               }
                               correctNumList[_playIndex] = rightNumber;
 
-                              _maxPlayIndex = doneList.lastIndexOf(true);
                               _accuracy = getAccuracy();
                               _strAccuracy =
                                   "${_accuracy.toInt()} %"; // 更新界面显示正确率
@@ -485,8 +483,6 @@ class AudiometryExercisePageState extends State<AudiometryExercisePage> {
                             // 每张表第一句语句不计入正确率计算
                             // _sumNumber = _sumNumber + _keywordNumber; // 更新已经播放的关键词总个数
                             // _accuracy = _rightNumber / _sumNumber * 100; // 更新正确率
-                            // _maxPlayIndex 为已完成的语句的最大索引
-                            _maxPlayIndex = doneList.lastIndexOf(true);
                             _accuracy = getAccuracy();
                             _strAccuracy =
                                 "${_accuracy.toInt()} %"; // 更新界面显示正确率
@@ -498,6 +494,10 @@ class AudiometryExercisePageState extends State<AudiometryExercisePage> {
                               _playIndex++;
                             });
                           }
+                          setState(() {
+                            // _maxPlayIndex 为已完成的语句的最大索引
+                            _maxPlayIndex = doneList.lastIndexOf(true);
+                          });
                           // 更新本句中的识别正确的个数
 
                           AutoProcess();
