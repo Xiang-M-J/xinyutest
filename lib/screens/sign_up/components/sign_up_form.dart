@@ -3,6 +3,8 @@ import 'package:dio/dio.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:xinyutest/Global/local_service.dart';
+import 'package:xinyutest/dal/user/user_manager.dart';
+import 'package:xinyutest/dal/user/userdata.dart';
 import '../../../Global/dio_client.dart';
 import '../../../components/AppTool.dart';
 import '../../../components/custom_surfix_icon.dart';
@@ -94,6 +96,8 @@ class _SignUpFormState extends State<SignUpForm> {
                     // var id = responseData["id"];
 
                     // if all are valid then go to success screen
+                    User user = User(phone!, password!, remember);
+                    await UserManager().login(user);
                     Navigator.of(context).push(MaterialPageRoute(
                         builder: (context) =>
                             LoginSuccessScreen(textValue: false)));

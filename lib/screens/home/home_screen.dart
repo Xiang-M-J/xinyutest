@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:xinyutest/Global/local_service.dart';
+import 'package:xinyutest/dal/user/user_manager.dart';
 import 'package:xinyutest/screens/sgin_in/sign_in_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bluetooth_serial/flutter_bluetooth_serial.dart';
@@ -234,6 +235,7 @@ class HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     Size size = MediaQuery.of(context).size;
+    final user = UserManager().currentUser;
 
     return Scaffold(
       body: Padding(

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:xinyutest/Global/dio_client.dart';
 import 'package:xinyutest/Global/local_service.dart';
 import 'package:xinyutest/Global/user_role.dart';
+import 'package:xinyutest/dal/user/user_manager.dart';
 
 import '../../../components/AppTool.dart';
 import '../../../components/custom_surfix_icon.dart';
@@ -112,13 +113,12 @@ class _SignFormState extends State<SignForm> {
                   var status = response.status;
                   if (status == 0) {
                     UserRole.role = role == "Admin" ? "数据主管" : "数据收集";
-
+                    User user = User(phone!, password!, remember);
                     if (remember) {
                       /// 保存账号密码到本地，用于下次直接登录
-                      User _user = User(phone!, password!, remember);
-                      SharedPreferenceUtil.saveUser(_user);
+                      SharedPreferenceUtil.saveUser(user);
                     }
-
+                    await UserManager().login(user);
                     Navigator.pushNamed(context, HomeScreen.routeName);
                   } else {
                     var error = response.error;
@@ -139,7 +139,7 @@ class _SignFormState extends State<SignForm> {
 
               // 仅用作测试
               // KeyboardUtil.hideKeyboard(context);
-              // Navigator.pushNamed(context, HomeScreen.routeName);
+              Navigator.pushNamed(context, HomeScreen.routeName);
               // //
               // if (_formKey.currentState!.validate()) {
               //   _formKey.currentState!.save();
