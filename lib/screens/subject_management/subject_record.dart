@@ -158,18 +158,10 @@ class _SubjectRecordFormState extends State<SubjectRecordForm> {
             return Column(children: [
               ListTile(
                 title: Text(
-                    "时间：" +
-                        e["createTime"].toString().substring(0, 16) +
-                        "\n" +
-                        "正确率：" +
-                        e["accuracy"],
-                    style: TextStyle(color: Colors.black, fontSize: 18)),
+                    "时间：${e["createTime"]}\n正确率: ${e['accuracy']}",
+                    style: const TextStyle(color: Colors.black, fontSize: 18)),
                 subtitle: Text(
-                    "表号:" +
-                        e["tableId"].toString() +
-                        "    强度：" +
-                        e["playVolume"].toString() +
-                        "dB A",
+                    "表号:${e["tableId"]}    强度：${e["playVolume"]}dB A",
                     style: const TextStyle(color: Colors.black, fontSize: 18)),
                 onTap: () {
                   if (UserRole.role == '数据主管') {

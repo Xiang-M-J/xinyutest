@@ -568,8 +568,8 @@ class DatabaseHelper {
 
     await db.execute('''
       CREATE TABLE $tableTestRecords (
-        id INTEGER PRIMARY KEY AUTOINCREMENT, subjectId INTEGER NOT NULL, interviewerId INTEGER NOT NULL,
-        mode TEXT, accuracy TEXT, createTime TEXT NOT NULL, audiogramLeftId INTEGER, audiogramRightId INTEGER,
+        id INTEGER PRIMARY KEY AUTOINCREMENT, subjectId INTEGER NOT NULL, interviewerId INTEGER,
+        mode TEXT, accuracy TEXT, createTime TEXT, audiogramLeftId INTEGER, audiogramRightId INTEGER,
         diagnosisId INTEGER, hearingStatus TEXT, hearingaidType TEXT, hearingaidSNBar TEXT,
         corpusType TEXT, environment TEXT, tableId INTEGER, playVolume INTEGER, result TEXT
       )

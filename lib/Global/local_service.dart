@@ -376,6 +376,16 @@ Future<Response> getTestRecordByIdResponse(String? userId, int id) async {
 
 List<Map> convertSpeechResources(List<SpeechResource> resources){
   List<Map> results = List.empty(growable: true);
+  for (var i = 0; i < resources.length; i++) {
+    Map resource = resources[i].toMap();
+    List<Map> keywords = List.empty(growable: true);
+    for (var i = 0; i < resource["keywords"].length; i++) {
+      keywords.add({"keyword": resource["keywords"][i], "check": false});
+    }
+    resource['keywords'] = keywords;
+    results.add(resource);
+  }
+  return results;
 }
 
 // 获取SpeechTable
@@ -405,13 +415,26 @@ Future<Response> getSpeechTableByIdResponse(String? userId, int id) async {
     //   data: {"status": 0, "data": {"resources": resources, "resourceNumber": resourceNumber}},
     // );
 
-    Map data = speechTables[id.toString()];
+    Map data = Map.from(speechTables[id.toString()]);
+    data["resources"] = convertSpeechResources(data["resources"]);
     return SuccessResponse(data);
   } catch (e) {
     return ErrorResponse("数据库操作错误");
   }
 }
 
+
+String convertResult(List results){
+  String str_res = "";
+
+  for (var i = 0; i < results.length; i++) {
+    for (var j = 0; j < results[i].length; j++) {
+      str_res = "$str_res${results[i][j]['keyword']}: ${results[i][j]['check']}";
+    }
+    str_res = str_res + "\n";
+  }
+  return str_res;
+}
 
 // 上传TestRecord
 Future<Response> postTestRecordResponse(String? userId, Map requestData) async {
@@ -420,16 +443,19 @@ Future<Response> postTestRecordResponse(String? userId, Map requestData) async {
   }
 
   try {
+    
     int result = await DatabaseHelper.instance.insertTestRecord(TestRecord(
-        subjectId: requestData['subjectId'],
-        mode: requestData['mode'],
-        hearingStatus: requestData['hearingStatus'],
-        corpusType: requestData['corpusType'],
-        environment: requestData['environment'],
-        tableId: requestData['tableId'],
-        playVolume: requestData['playVolume'],
-        result: requestData['result'],
-        accuracy: requestData['accuracy'],
+        subjectId: requestData['subjectId'] as int,
+        interviewerId: 1,
+        mode: requestData['mode'] as String,
+        createTime: "",
+        hearingStatus: requestData['hearingStatus'] as String,
+        corpusType: requestData['corpusType'] as String,
+        environment: requestData['environment'] as String,
+        tableId: requestData['tableId'] as int,
+        playVolume: requestData['playVolume'] as int,
+        result: convertResult(requestData['result'] as List),
+        accuracy: requestData['accuracy'] as String,
     ));
     if (result <= 0) {
       return ErrorResponse("数据库操作错误");
@@ -448,11 +474,12 @@ Future<Response> postTestRecordResponse(String? userId, Map requestData) async {
 Future<Response> getSpeechTableByModeResponse(String mode) async {
 
   try {
-    if (mode == "Normal"){
-      return SuccessResponse(speechTables['13']);
-    }else{
-      return SuccessResponse(speechTables['14']);
-    }
+    // Map data = Map.from(speechTables['14']);
+    // if (mode == "Normal"){
+    //   data = Map.from(speechTables['13']);
+    // }
+    // data["resources"] = convertSpeechResources(data["resources"]);
+    return SuccessResponse([13, 14]);
   } catch (e) {
     return ErrorResponse("错误");
   }

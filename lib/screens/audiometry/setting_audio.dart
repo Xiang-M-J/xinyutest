@@ -121,7 +121,7 @@ class SettingAudioPageState extends State<SettingAudioPage> {
     } catch (e) {
       setState(() {
         /// 警告，提示对话框
-        AppTool().showDefineAlert(context, "错误", '请检查网络连接！');
+        AppTool().showDefineAlert(context, "错误", '${e.toString()}');
       });
       return;
     }

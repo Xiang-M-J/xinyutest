@@ -365,7 +365,10 @@ class AudiometryScreenPageState extends State<AudiometryScreenPage> {
     controller.dispose();
     for (int i = 0; i < delAudioPath.length; i++) {
       var dir = Directory(delAudioPath[i]);
-      dir.deleteSync(recursive: true);
+      if (dir.existsSync()) {
+          dir.deleteSync(recursive: true);
+
+      }
     }
     audioPlayer?.release();
     super.dispose();
