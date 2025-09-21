@@ -1,5 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:xinyutest/Global/local_service.dart';
+import 'package:xinyutest/dal/user/user_manager.dart';
 import '../../../Global/dio_client.dart';
 import '../../../components/AppTool.dart';
 import '../../../components/custom_surfix_icon.dart';
@@ -26,6 +28,7 @@ class _SubjectFormState extends State<SubjectForm> {
   String putonghua_level = '';
   String phone = '';
   String wearlog = '';
+  String? userId;
 
   ///
 
@@ -39,10 +42,11 @@ class _SubjectFormState extends State<SubjectForm> {
   var dio = DioClient.dio;
 
   void addError({String? error}) {
-    if (!errors.contains(error))
+    if (!errors.contains(error)) {
       setState(() {
         errors.add(error);
       });
+    }
   }
 
   void removeError({String? error}) {
@@ -57,9 +61,10 @@ class _SubjectFormState extends State<SubjectForm> {
       isNew = false;
       TestRecord.isNewSubject = -1;
       try {
-        var response = await dio.get(
-          DioClient.baseurl + '/api/subject/' + TestRecord.subjectId.toString(),
-        );
+        // var response = await dio.get(
+        //   DioClient.baseurl + '/api/subject/' + TestRecord.subjectId.toString(),
+        // );
+        var response = await getSubjectByIdResponse(userId, TestRecord.subjectId);
         var res = response.data;
         var status = res["status"] as int;
         if (status == 0) {
@@ -101,6 +106,7 @@ class _SubjectFormState extends State<SubjectForm> {
   void initState() {
     // TODO: implement initState
     super.initState();
+    userId = UserManager().currentUser?.userphone;
     _getSubjectInfo();
   }
 
@@ -148,13 +154,16 @@ class _SubjectFormState extends State<SubjectForm> {
                   };
 
                   if (isNew) {
-                    var response = await dio.post(
-                        DioClient.baseurl + '/api/subject',
-                        data: requestData);
+                    // var response = await dio.post(
+                    //     DioClient.baseurl + '/api/subject',
+                    //     data: requestData);
+                    
+                    var response = await postSubjectResponse(userId, requestData);
+
                     var res = response.data;
                     var status = res["status"] as int;
                     if (status == 0) {
-                      var responseData = res["data"];
+                      // var responseData = res["data"];
 
                       setState(() {
                         Navigator.of(context).push(MaterialPageRoute(
@@ -169,11 +178,13 @@ class _SubjectFormState extends State<SubjectForm> {
                       });
                     }
                   } else {
-                    var response = await dio.put(
-                        DioClient.baseurl +
-                            '/api/subject/' +
-                            TestRecord.subjectId.toString(),
-                        data: requestData);
+                    // var response = await dio.put(
+                    //     DioClient.baseurl +
+                    //         '/api/subject/' +
+                    //         TestRecord.subjectId.toString(),
+                    //     data: requestData);
+                      
+                    var response = await putSubjectResponse(userId, TestRecord.subjectId, requestData);
                     
                     var res = response.data;
                     var status = res["status"] as int;

@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:xinyutest/Global/database_utils.dart';
 import 'package:xinyutest/Global/dio_client.dart';
 import 'package:xinyutest/Global/local_service.dart';
 import 'package:xinyutest/Global/user_role.dart';
@@ -119,6 +120,7 @@ class _SignFormState extends State<SignForm> {
                       SharedPreferenceUtil.saveUser(user);
                     }
                     await UserManager().login(user);
+                    await DatabaseHelper.instance.init(user.userphone);
                     Navigator.pushNamed(context, HomeScreen.routeName);
                   } else {
                     var error = response.error;
@@ -139,7 +141,7 @@ class _SignFormState extends State<SignForm> {
 
               // 仅用作测试
               // KeyboardUtil.hideKeyboard(context);
-              Navigator.pushNamed(context, HomeScreen.routeName);
+              // Navigator.pushNamed(context, HomeScreen.routeName);
               // //
               // if (_formKey.currentState!.validate()) {
               //   _formKey.currentState!.save();

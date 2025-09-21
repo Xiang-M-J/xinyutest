@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:io';
 
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
@@ -22,41 +21,52 @@ class SpeechResource {
       this.keywords});
 
   Map<String, dynamic> toMap() => {
-        'Id': id,
-        'Name': name,
-        'TableId': tableId,
-        'WordIndex': wordIndex,
-        'KeywordNumber': keywordNumber,
-        'Keywords': keywords
+        'id': id,
+        'name': name,
+        'tableId': tableId,
+        'wordIndex': wordIndex,
+        'keywordNumber': keywordNumber,
+        'keywords': keywords
       };
   factory SpeechResource.fromMap(Map<String, dynamic> map) => SpeechResource(
-      id: map['Id'],
-      name: map['Name'],
-      tableId: map['TableId'],
-      wordIndex: map['WordIndex'],
-      keywordNumber: map['KeywordNumber'],
-      keywords: map['Keywords']);
+      id: map['id'],
+      name: map['name'],
+      tableId: map['tableId'],
+      wordIndex: map['wordIndex'],
+      keywordNumber: map['keywordNumber'],
+      keywords: map['keywords']);
 }
 
 // 测试图表 (speechtables)
 class SpeechTable {
   int? id;
   String? type;
+  String? resources;
+  int? resourceNumber;
 
-  SpeechTable({this.id, this.type});
+  SpeechTable({this.id, this.type, this.resources, this.resourceNumber});
 
-  Map<String, dynamic> toMap() => {'Id': id, 'Type': type};
-  factory SpeechTable.fromMap(Map<String, dynamic> map) =>
-      SpeechTable(id: map['Id'], type: map['Type']);
+  Map<String, dynamic> toMap() => {
+        'id': id,
+        'type': type,
+        'resources': resources,
+        'resourceNumber': resourceNumber
+      };
+  factory SpeechTable.fromMap(Map<String, dynamic> map) => SpeechTable(
+      id: map['id'],
+      type: map['type'],
+      resources: map['resources'],
+      resourceNumber: map['resourceNumber']);
 }
 
 // 测试记录 (testrecords)
 class TestRecord {
   int? id;
   int subjectId;
-  int interviewerId;
+  int? interviewerId;
+  String? accuracy;
   String? mode;
-  String createTime;
+  String? createTime;
   int? audiogramLeftId;
   int? audiogramRightId;
   int? diagnosisId;
@@ -72,9 +82,10 @@ class TestRecord {
   TestRecord(
       {this.id,
       required this.subjectId,
-      required this.interviewerId,
+      this.interviewerId,
       this.mode,
-      required this.createTime,
+      this.createTime,
+      this.accuracy,
       this.audiogramLeftId,
       this.audiogramRightId,
       this.diagnosisId,
@@ -88,40 +99,42 @@ class TestRecord {
       this.result});
 
   Map<String, dynamic> toMap() => {
-        'Id': id,
-        'SubjectId': subjectId,
-        'InterviewerId': interviewerId,
-        'Mode': mode,
-        'CreateTime': createTime,
-        'AudiogramLeftId': audiogramLeftId,
-        'AudiogramRightId': audiogramRightId,
-        'DiagnosisId': diagnosisId,
-        'HearingStatus': hearingStatus,
-        'HearingaidType': hearingaidType,
-        'HearingaidSNBar': hearingaidSNBar,
-        'CorpusType': corpusType,
-        'Environment': environment,
-        'TableId': tableId,
-        'PlayVolume': playVolume,
-        'Result': result
+        'id': id,
+        'subjectId': subjectId,
+        'interviewerId': interviewerId,
+        'mode': mode,
+        'accuracy': accuracy,
+        'createTime': createTime,
+        'audiogramLeftId': audiogramLeftId,
+        'audiogramRightId': audiogramRightId,
+        'diagnosisId': diagnosisId,
+        'hearingStatus': hearingStatus,
+        'hearingaidType': hearingaidType,
+        'hearingaidSNBar': hearingaidSNBar,
+        'corpusType': corpusType,
+        'environment': environment,
+        'tableId': tableId,
+        'playVolume': playVolume,
+        'result': result
       };
   factory TestRecord.fromMap(Map<String, dynamic> map) => TestRecord(
-      id: map['Id'],
-      subjectId: map['SubjectId'],
-      interviewerId: map['InterviewerId'],
-      mode: map['Mode'],
-      createTime: map['CreateTime'],
-      audiogramLeftId: map['AudiogramLeftId'],
-      audiogramRightId: map['AudiogramRightId'],
-      diagnosisId: map['DiagnosisId'],
-      hearingStatus: map['HearingStatus'],
-      hearingaidType: map['HearingaidType'],
-      hearingaidSNBar: map['HearingaidSNBar'],
-      corpusType: map['CorpusType'],
-      environment: map['Environment'],
-      tableId: map['TableId'],
-      playVolume: map['PlayVolume'],
-      result: map['Result']);
+      id: map['id'],
+      subjectId: map['subjectId'],
+      interviewerId: map['interviewerId'],
+      mode: map['mode'],
+      accuracy: map['accuracy'],
+      createTime: map['createTime'],
+      audiogramLeftId: map['audiogramLeftId'],
+      audiogramRightId: map['audiogramRightId'],
+      diagnosisId: map['diagnosisId'],
+      hearingStatus: map['hearingStatus'],
+      hearingaidType: map['hearingaidType'],
+      hearingaidSNBar: map['hearingaidSNBar'],
+      corpusType: map['corpusType'],
+      environment: map['environment'],
+      tableId: map['tableId'],
+      playVolume: map['playVolume'],
+      result: map['result']);
 }
 
 // 被试者 (subjects)
@@ -134,7 +147,7 @@ class Subject {
   String? gender;
   String? birthDate;
   String? phoneNumber;
-  String? listeningLevel;
+  String? putonghuaLevel;
   String? wearLog;
 
   Subject(
@@ -146,32 +159,49 @@ class Subject {
       this.gender,
       this.birthDate,
       this.phoneNumber,
-      this.listeningLevel,
+      this.putonghuaLevel,
       this.wearLog});
 
-  Map<String, dynamic> toMap() => {
-        'Id': id,
-        'OrganizationId': organizationId,
-        'TeamId': teamId,
-        'TeamIndex': teamIndex,
-        'Name': name,
-        'Gender': gender,
-        'BirthDate': birthDate,
-        'PhoneNumber': phoneNumber,
-        'ListeningLevel': listeningLevel,
-        'WearLog': wearLog
+  Map<String, dynamic> toMap() {
+    if (id == null) {
+      return {
+        'organizationId': organizationId,
+        'teamId': teamId,
+        'teamIndex': teamIndex,
+        'name': name,
+        'gender': gender,
+        'birthDate': birthDate,
+        'phoneNumber': phoneNumber,
+        'putonghuaLevel': putonghuaLevel,
+        'wearLog': wearLog
       };
+    } else {
+      return {
+        'id': id,
+        'organizationId': organizationId,
+        'teamId': teamId,
+        'teamIndex': teamIndex,
+        'name': name,
+        'gender': gender,
+        'birthDate': birthDate,
+        'phoneNumber': phoneNumber,
+        'putonghuaLevel': putonghuaLevel,
+        'wearLog': wearLog
+      };
+    }
+  }
+
   factory Subject.fromMap(Map<String, dynamic> map) => Subject(
-      id: map['Id'],
-      organizationId: map['OrganizationId'],
-      teamId: map['TeamId'],
-      teamIndex: map['TeamIndex'],
-      name: map['Name'],
-      gender: map['Gender'],
-      birthDate: map['BirthDate'],
-      phoneNumber: map['PhoneNumber'],
-      listeningLevel: map['ListeningLevel'],
-      wearLog: map['WearLog']);
+      id: map['id'],
+      organizationId: map['organizationId'],
+      teamId: map['teamId'],
+      teamIndex: map['teamIndex'],
+      name: map['name'],
+      gender: map['gender'],
+      birthDate: map['birthDate'],
+      phoneNumber: map['phoneNumber'],
+      putonghuaLevel: map['putonghuaLevel'],
+      wearLog: map['wearLog']);
 }
 
 // 具体诊断 (diagnoses)
@@ -190,18 +220,18 @@ class Diagnosis {
       this.description});
 
   Map<String, dynamic> toMap() => {
-        'Id': id,
-        'SubjectId': subjectId,
-        'InterviewerId': interviewerId,
-        'CreateTime': createTime,
-        'Description': description
+        'id': id,
+        'subjectId': subjectId,
+        'interviewerId': interviewerId,
+        'createTime': createTime,
+        'description': description
       };
   factory Diagnosis.fromMap(Map<String, dynamic> map) => Diagnosis(
-      id: map['Id'],
-      subjectId: map['SubjectId'],
-      interviewerId: map['InterviewerId'],
-      createTime: map['CreateTime'],
-      description: map['Description']);
+      id: map['id'],
+      subjectId: map['subjectId'],
+      interviewerId: map['interviewerId'],
+      createTime: map['createTime'],
+      description: map['description']);
 }
 
 // 听力图 (audiograms)
@@ -222,20 +252,20 @@ class Audiogram {
       this.data});
 
   Map<String, dynamic> toMap() => {
-        'Id': id,
-        'SubjectId': subjectId,
-        'InterviewerId': interviewerId,
-        'CreateTime': createTime,
-        'Ear': ear,
-        'Data': data
+        'id': id,
+        'subjectId': subjectId,
+        'interviewerId': interviewerId,
+        'createTime': createTime,
+        'ear': ear,
+        'data': data
       };
   factory Audiogram.fromMap(Map<String, dynamic> map) => Audiogram(
-      id: map['Id'],
-      subjectId: map['SubjectId'],
-      interviewerId: map['InterviewerId'],
-      createTime: map['CreateTime'],
-      ear: map['Ear'],
-      data: map['Data']);
+      id: map['id'],
+      subjectId: map['subjectId'],
+      interviewerId: map['interviewerId'],
+      createTime: map['createTime'],
+      ear: map['ear'],
+      data: map['data']);
 }
 
 // 单位 (organizations)
@@ -256,20 +286,20 @@ class Organization {
       this.isSuperAdmin});
 
   Map<String, dynamic> toMap() => {
-        'Id': id,
-        'Name': name,
-        'Address': address,
-        'CommunityCode': communityCode,
-        'UniqueCode': uniqueCode,
-        'IsSuperAdmin': isSuperAdmin
+        'id': id,
+        'name': name,
+        'address': address,
+        'communityCode': communityCode,
+        'uniqueCode': uniqueCode,
+        'isSuperAdmin': isSuperAdmin
       };
   factory Organization.fromMap(Map<String, dynamic> map) => Organization(
-      id: map['Id'],
-      name: map['Name'],
-      address: map['Address'],
-      communityCode: map['CommunityCode'],
-      uniqueCode: map['UniqueCode'],
-      isSuperAdmin: map['IsSuperAdmin']);
+      id: map['id'],
+      name: map['name'],
+      address: map['address'],
+      communityCode: map['communityCode'],
+      uniqueCode: map['uniqueCode'],
+      isSuperAdmin: map['isSuperAdmin']);
 }
 
 // 团队 (teams)
@@ -281,11 +311,11 @@ class Team {
   Team({this.id, this.organizationId, this.index});
 
   Map<String, dynamic> toMap() =>
-      {'Id': id, 'OrganizationId': organizationId, 'Index': index};
+      {'id': id, 'organizationId': organizationId, 'index': index};
   factory Team.fromMap(Map<String, dynamic> map) => Team(
-      id: map['Id'],
-      organizationId: map['OrganizationId'],
-      index: map['Index']);
+      id: map['id'],
+      organizationId: map['organizationId'],
+      index: map['index']);
 }
 
 // 主试者 (aspnetusers)
@@ -333,49 +363,76 @@ class AspNetUser {
       this.lockoutEnabled,
       this.accessFailedCount});
 
-  Map<String, dynamic> toMap() => {
-        'Id': id,
-        'RealName': realName,
-        'OrganizationId': organizationId,
-        'TeamId': teamId,
-        'TeamIndex': teamIndex,
-        'UniqueCode': uniqueCode,
-        'UserName': userName,
-        'NormalizedUserName': normalizedUserName,
-        'Email': email,
-        'NormalizedEmail': normalizedEmail,
-        'EmailConfirmed': emailConfirmed,
-        'PasswordHash': passwordHash,
-        'SecurityStamp': securityStamp,
-        'ConcurrencyStamp': concurrencyStamp,
-        'PhoneNumber': phoneNumber,
-        'PhoneNumberConfirmed': phoneNumberConfirmed,
-        'TwoFactorEnabled': twoFactorEnabled,
-        'LockoutEnd': lockoutEnd,
-        'LockoutEnabled': lockoutEnabled,
-        'AccessFailedCount': accessFailedCount
+  Map<String, dynamic> toMap() {
+    if (id == null) {
+      return {
+        'realName': realName,
+        'organizationId': organizationId,
+        'teamId': teamId,
+        'teamIndex': teamIndex,
+        'uniqueCode': uniqueCode,
+        'userName': userName,
+        'normalizedUserName': normalizedUserName,
+        'email': email,
+        'normalizedEmail': normalizedEmail,
+        'emailConfirmed': emailConfirmed,
+        'passwordHash': passwordHash,
+        'securityStamp': securityStamp,
+        'concurrencyStamp': concurrencyStamp,
+        'phoneNumber': phoneNumber,
+        'phoneNumberConfirmed': phoneNumberConfirmed,
+        'twoFactorEnabled': twoFactorEnabled,
+        'lockoutEnd': lockoutEnd,
+        'lockoutEnabled': lockoutEnabled,
+        'accessFailedCount': accessFailedCount
       };
+    } else {
+      return {
+        'id': id,
+        'realName': realName,
+        'organizationId': organizationId,
+        'teamId': teamId,
+        'teamIndex': teamIndex,
+        'uniqueCode': uniqueCode,
+        'userName': userName,
+        'normalizedUserName': normalizedUserName,
+        'email': email,
+        'normalizedEmail': normalizedEmail,
+        'emailConfirmed': emailConfirmed,
+        'passwordHash': passwordHash,
+        'securityStamp': securityStamp,
+        'concurrencyStamp': concurrencyStamp,
+        'phoneNumber': phoneNumber,
+        'phoneNumberConfirmed': phoneNumberConfirmed,
+        'twoFactorEnabled': twoFactorEnabled,
+        'lockoutEnd': lockoutEnd,
+        'lockoutEnabled': lockoutEnabled,
+        'accessFailedCount': accessFailedCount
+      };
+    }
+  }
+
   factory AspNetUser.fromMap(Map<String, dynamic> map) => AspNetUser(
-      id: map['Id'],
-      realName: map['RealName'],
-      organizationId: map['OrganizationId'],
-      teamId: map['TeamId'],
-      teamIndex: map['TeamIndex'],
-      uniqueCode: map['UniqueCode'],
-      userName: map['UserName'],
-      normalizedUserName: map['NormalizedUserName'],
-      email: map['Email'],
-      normalizedEmail: map['NormalizedEmail'],
-      emailConfirmed: map['EmailConfirmed'],
-      passwordHash: map['PasswordHash'],
-      securityStamp: map['SecurityStamp'],
-      concurrencyStamp: map['ConcurrencyStamp'],
-      phoneNumber: map['PhoneNumber'],
-      phoneNumberConfirmed: map['PhoneNumberConfirmed'],
-      twoFactorEnabled: map['TwoFactorEnabled'],
-      lockoutEnd: map['LockoutEnd'],
-      lockoutEnabled: map['LockoutEnabled'],
-      accessFailedCount: map['AccessFailedCount']);
+      id: map['id'],
+      realName: map['realName'],
+      organizationId: map['organizationId'],
+      teamId: map['teamId'],
+      teamIndex: map['teamIndex'],
+      uniqueCode: map['uniqueCode'],
+      userName: map['userName'],
+      normalizedUserName: map['normalizedUserName'],
+      email: map['email'],
+      normalizedEmail: map['normalizedEmail'],
+      emailConfirmed: map['emailConfirmed'],
+      passwordHash: map['passwordHash'],
+      securityStamp: map['securityStamp'],
+      concurrencyStamp: map['concurrencyStamp'],
+      phoneNumber: map['phoneNumber'],
+      phoneNumberConfirmed: map['phoneNumberConfirmed'],
+      twoFactorEnabled: map['twoFactorEnabled'],
+      lockoutEnd: map['lockoutEnd'],
+      lockoutEnabled: map['lockoutEnabled'],
+      accessFailedCount: map['accessFailedCount']);
 }
 
 // 主试者对应权限 (aspnetuserroles)
@@ -385,9 +442,9 @@ class AspNetUserRole {
 
   AspNetUserRole({required this.userId, required this.roleId});
 
-  Map<String, dynamic> toMap() => {'UserId': userId, 'RoleId': roleId};
+  Map<String, dynamic> toMap() => {'userId': userId, 'roleId': roleId};
   factory AspNetUserRole.fromMap(Map<String, dynamic> map) =>
-      AspNetUserRole(userId: map['UserId'], roleId: map['RoleId']);
+      AspNetUserRole(userId: map['userId'], roleId: map['roleId']);
 }
 
 // 权限定义 (aspnetroles)
@@ -400,32 +457,32 @@ class AspNetRole {
   AspNetRole({this.id, this.name, this.normalizedName, this.concurrencyStamp});
 
   Map<String, dynamic> toMap() => {
-        'Id': id,
-        'Name': name,
-        'NormalizedName': normalizedName,
-        'ConcurrencyStamp': concurrencyStamp
+        'id': id,
+        'name': name,
+        'normalizedName': normalizedName,
+        'concurrencyStamp': concurrencyStamp
       };
   factory AspNetRole.fromMap(Map<String, dynamic> map) => AspNetRole(
-      id: map['Id'],
-      name: map['Name'],
-      normalizedName: map['NormalizedName'],
-      concurrencyStamp: map['ConcurrencyStamp']);
+      id: map['id'],
+      name: map['name'],
+      normalizedName: map['normalizedName'],
+      concurrencyStamp: map['concurrencyStamp']);
 }
 
-// // 设备校准记录 (devicecalibrations)
-// class DeviceCalibration {
-//   int? id;
-//   String? testingDevice;
-//   String? createTime;
-//   double? playVolume;
-//   int? microphoneCalibrationValue;
-//   int? speakerCalibrationValue;
+// 设备校准记录 (devicecalibrations)
+class DeviceCalibration {
+  int? id;
+  String? testingDevice;
+  String? createTime;
+  double? playVolume;
+  int? microphoneCalibrationValue;
+  int? speakerCalibrationValue;
 
-//   DeviceCalibration({this.id, this.testingDevice, this.createTime, this.playVolume, this.microphoneCalibrationValue, this.speakerCalibrationValue});
+  DeviceCalibration({this.id, this.testingDevice, this.createTime, this.playVolume, this.microphoneCalibrationValue, this.speakerCalibrationValue});
 
-//   Map<String, dynamic> toMap() => {'Id': id, 'TestingDevice': testingDevice, 'CreateTime': createTime, 'PlayVolume': playVolume, 'MicrophoneCalibrationValue': microphoneCalibrationValue, 'SpeakerCalibrationValue': speakerCalibrationValue};
-//   factory DeviceCalibration.fromMap(Map<String, dynamic> map) => DeviceCalibration(id: map['Id'], testingDevice: map['TestingDevice'], createTime: map['CreateTime'], playVolume: map['PlayVolume'], microphoneCalibrationValue: map['MicrophoneCalibrationValue'], speakerCalibrationValue: map['SpeakerCalibrationValue']);
-// }
+  Map<String, dynamic> toMap() => {'id': id, 'testingDevice': testingDevice, 'createTime': createTime, 'playVolume': playVolume, 'microphoneCalibrationValue': microphoneCalibrationValue, 'speakerCalibrationValue': speakerCalibrationValue};
+  factory DeviceCalibration.fromMap(Map<String, dynamic> map) => DeviceCalibration(id: map['id'], testingDevice: map['testingDevice'], createTime: map['createTime'], playVolume: map['playVolume'], microphoneCalibrationValue: map['microphoneCalibrationValue'], speakerCalibrationValue: map['speakerCalibrationValue']);
+}
 
 class DatabaseHelper {
   static const version = 1;
@@ -446,6 +503,7 @@ class DatabaseHelper {
 
   Database? _database;
   String? _currentUserId;
+  String? db_path;
 
   DatabaseHelper._privateConstructor();
   static final DatabaseHelper instance = DatabaseHelper._privateConstructor();
@@ -471,6 +529,8 @@ class DatabaseHelper {
 
     _currentUserId = userId;
     _database = await _initDatabase(userId);
+
+    await defaultOperation();
   }
 
   // 初始化用户数据库
@@ -478,11 +538,14 @@ class DatabaseHelper {
     String dbName = 'user_$userId.db';
     String path = join(await getDatabasesPath(), dbName);
 
+    db_path = path;
+
     return await openDatabase(
       path,
       version: version,
       onCreate: _onCreate,
     );
+  
   }
 
   // 关闭数据，在用户登出时调用
@@ -498,88 +561,106 @@ class DatabaseHelper {
   Future _onCreate(Database db, int version) async {
     await db.execute('''
       CREATE TABLE $tableSubjects (
-        Id INTEGER PRIMARY KEY AUTOINCREMENT, OrganizationId INTEGER, TeamId INTEGER, TeamIndex INTEGER, Name TEXT NOT NULL,
-        Gender TEXT, BirthDate TEXT, PhoneNumber TEXT, ListeningLevel TEXT, WearLog TEXT
+        id INTEGER PRIMARY KEY AUTOINCREMENT, organizationId INTEGER, teamId INTEGER, teamIndex INTEGER, name TEXT NOT NULL,
+        gender TEXT, birthDate TEXT, phoneNumber TEXT, putonghuaLevel TEXT, wearLog TEXT
       )
     ''');
 
     await db.execute('''
       CREATE TABLE $tableTestRecords (
-        Id INTEGER PRIMARY KEY AUTOINCREMENT, SubjectId INTEGER NOT NULL, InterviewerId INTEGER NOT NULL,
-        Mode TEXT, CreateTime TEXT NOT NULL, AudiogramLeftId INTEGER, AudiogramRightId INTEGER,
-        DiagnosisId INTEGER, HearingStatus TEXT, HearingaidType TEXT, HearingaidSNBar TEXT,
-        CorpusType TEXT, Environment TEXT, TableId INTEGER, PlayVolume INTEGER, Result TEXT
+        id INTEGER PRIMARY KEY AUTOINCREMENT, subjectId INTEGER NOT NULL, interviewerId INTEGER NOT NULL,
+        mode TEXT, accuracy TEXT, createTime TEXT NOT NULL, audiogramLeftId INTEGER, audiogramRightId INTEGER,
+        diagnosisId INTEGER, hearingStatus TEXT, hearingaidType TEXT, hearingaidSNBar TEXT,
+        corpusType TEXT, environment TEXT, tableId INTEGER, playVolume INTEGER, result TEXT
       )
     ''');
 
     await db.execute('''
       CREATE TABLE $tableDiagnoses (
-        Id INTEGER PRIMARY KEY AUTOINCREMENT, SubjectId INTEGER, InterviewerId INTEGER,
-        CreateTime TEXT, Description TEXT
+        id INTEGER PRIMARY KEY AUTOINCREMENT, subjectId INTEGER, interviewerId INTEGER,
+        createTime TEXT, description TEXT
       )
     ''');
 
     await db.execute('''
       CREATE TABLE $tableAudiograms (
-        Id INTEGER PRIMARY KEY AUTOINCREMENT, SubjectId INTEGER, InterviewerId INTEGER,
-        CreateTime TEXT, Ear TEXT, Data TEXT
+        id INTEGER PRIMARY KEY AUTOINCREMENT, subjectId INTEGER, interviewerId INTEGER,
+        createTime TEXT, ear TEXT, data TEXT
       )
     ''');
 
     await db.execute('''
       CREATE TABLE $tableSpeechResources (
-        Id INTEGER PRIMARY KEY AUTOINCREMENT, Name TEXT, TableId INTEGER, WordIndex INTEGER, KeywordNumber: INTEGER, Keywords TEXT
+        id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, tableId INTEGER, wordIndex INTEGER, keywordNumber INTEGER, keywords TEXT
       )
     ''');
 
     await db.execute('''
       CREATE TABLE $tableSpeechTables (
-        Id INTEGER PRIMARY KEY AUTOINCREMENT, Type TEXT
+        id INTEGER PRIMARY KEY AUTOINCREMENT, type TEXT, resources TEXT, resourceNumber INTEGER
       )
     ''');
 
     await db.execute('''
       CREATE TABLE $tableDeviceCalibrations (
-        Id INTEGER PRIMARY KEY AUTOINCREMENT, TestingDevice TEXT, CreateTime TEXT, PlayVolume REAL,
-        MicrophoneCalibrationValue INTEGER, SpeakerCalibrationValue INTEGER
+        id INTEGER PRIMARY KEY AUTOINCREMENT, testingDevice TEXT, createTime TEXT, playVolume REAL,
+        microphoneCalibrationValue INTEGER, speakerCalibrationValue INTEGER
       )
     ''');
 
     await db.execute('''
       CREATE TABLE $tableOrganizations (
-        Id INTEGER PRIMARY KEY AUTOINCREMENT, Name TEXT, Address TEXT, CommunityCode TEXT,
-        UniqueCode TEXT, IsSuperAdmin INTEGER
+        id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, address TEXT, communityCode TEXT,
+        uniqueCode TEXT, isSuperAdmin INTEGER
       )
     ''');
 
     await db.execute('''
       CREATE TABLE $tableTeams (
-        Id INTEGER PRIMARY KEY AUTOINCREMENT, OrganizationId INTEGER, "Index" INTEGER
+        id INTEGER PRIMARY KEY AUTOINCREMENT, organizationId INTEGER, "index" INTEGER
       )
     ''');
 
     await db.execute('''
       CREATE TABLE $tableAspNetUsers (
-        Id INTEGER PRIMARY KEY AUTOINCREMENT, RealName TEXT, OrganizationId INTEGER, TeamId INTEGER,
-        TeamIndex INTEGER, UniqueCode TEXT, UserName TEXT, NormalizedUserName TEXT, Email TEXT,
-        NormalizedEmail TEXT, EmailConfirmed INTEGER, PasswordHash TEXT, SecurityStamp TEXT,
-        ConcurrencyStamp TEXT, PhoneNumber TEXT, PhoneNumberConfirmed INTEGER, TwoFactorEnabled INTEGER,
-        LockoutEnd TEXT, LockoutEnabled INTEGER, AccessFailedCount INTEGER
+        id INTEGER PRIMARY KEY AUTOINCREMENT, realName TEXT, organizationId INTEGER, teamId INTEGER,
+        teamIndex INTEGER, uniqueCode TEXT, userName TEXT, normalizedUserName TEXT, email TEXT,
+        normalizedEmail TEXT, emailConfirmed INTEGER, passwordHash TEXT, securityStamp TEXT,
+        concurrencyStamp TEXT, phoneNumber TEXT, phoneNumberConfirmed INTEGER, twoFactorEnabled INTEGER,
+        lockoutEnd TEXT, lockoutEnabled INTEGER, accessFailedCount INTEGER
       )
     ''');
 
     await db.execute('''
       CREATE TABLE $tableAspNetRoles (
-        Id INTEGER PRIMARY KEY AUTOINCREMENT, Name TEXT, NormalizedName TEXT, ConcurrencyStamp TEXT
+        id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, normalizedName TEXT, concurrencyStamp TEXT
       )
     ''');
 
     await db.execute('''
       CREATE TABLE $tableAspNetUserRoles (
-        UserId INTEGER NOT NULL, RoleId INTEGER NOT NULL,
-        PRIMARY KEY (UserId, RoleId)
+        userId INTEGER NOT NULL, roleId INTEGER NOT NULL,
+        PRIMARY KEY (userId, roleId)
       )
     ''');
+
+  }
+
+  Future<void> defaultOperation() async{
+    await insertSpeechTable(SpeechTable(resources: "1,2,3,4", resourceNumber: 4));
+    await insertSpeechTable(SpeechTable(resources: "5,6,7", resourceNumber: 3));
+    await insertSpeechTable(SpeechTable(resources: "1,2,3,4", resourceNumber: 4));
+    await insertSpeechTable(SpeechTable(resources: "5,6,7", resourceNumber: 3));
+    await insertSpeechTable(SpeechTable(resources: "1,2,3,4", resourceNumber: 4));
+    await insertSpeechTable(SpeechTable(resources: "5,6,7", resourceNumber: 3));
+    await insertSpeechTable(SpeechTable(resources: "1,2,3,4", resourceNumber: 4));
+    await insertSpeechTable(SpeechTable(resources: "5,6,7", resourceNumber: 3));
+    await insertSpeechTable(SpeechTable(resources: "1,2,3,4", resourceNumber: 4));
+    await insertSpeechTable(SpeechTable(resources: "5,6,7", resourceNumber: 3));
+    await insertSpeechTable(SpeechTable(resources: "1,2,3,4", resourceNumber: 4));
+    await insertSpeechTable(SpeechTable(resources: "5,6,7", resourceNumber: 3));
+    await insertSpeechTable(SpeechTable(resources: "1,2,3,4", resourceNumber: 4));
+    await insertSpeechTable(SpeechTable(resources: "5,6,7", resourceNumber: 3));
   }
 
   // 增删改查
@@ -594,6 +675,7 @@ class DatabaseHelper {
   Future<List<Map<String, dynamic>>> queryAllRows(String table) async {
     Database? db = await instance.database;
     if (db != null) {
+
       return await db.query(table);
     }
     return List.empty();
@@ -621,10 +703,45 @@ class DatabaseHelper {
   // 被试者
   Future<int> insertSubject(Subject subject) =>
       insert(tableSubjects, subject.toMap());
-  Future<List<Subject>> queryAllSubjects() async =>
-      (await queryAllRows(tableSubjects))
-          .map((e) => Subject.fromMap(e))
-          .toList();
+  Future<List<Subject>> queryAllSubjects() async{
+    List results = await queryAllRows(tableSubjects);
+    List<Subject> subjects = List.empty(growable: true);
+    for (var i = 0; i < results.length; i++) {
+      subjects.add(Subject.fromMap(results[i]));
+    }
+    return subjects;
+  }
+      
+  Future<List<Subject>> querySubjectsByName(String name) async {
+    Database? db = await instance.database;
+    if (db != null) {
+      List<Map<String, dynamic>> results = await db.query(
+        tableSubjects,
+        where: 'name LIKE ?',
+        whereArgs: ['%$name%'], // %是通配符，匹配任意字符
+      );
+      List<Subject> subjects = results.map((e) => Subject.fromMap(e)).toList();
+      return subjects;
+    }
+    return List.empty();
+  }
+
+  Future<List<Subject>> querySubjectsById(int id) async {
+    Database? db = await instance.database;
+    if (db != null) {
+      List<Map<String, dynamic>> results = await db.query(
+        tableSubjects,
+        where: 'id = ?',
+        whereArgs: [id],
+        limit: 1, // 限制只返回1条
+      );
+
+      List<Subject> subjects = results.map((e) => Subject.fromMap(e)).toList();
+      return subjects;
+    }
+    return List.empty();
+  }
+
   Future<int> updateSubject(Subject subject) =>
       update(tableSubjects, subject.toMap(), 'Id', subject.id!);
   Future<int> deleteSubject(int id) => delete(tableSubjects, 'Id', id);
@@ -641,6 +758,18 @@ class DatabaseHelper {
     if (db != null) {
       var res = await db.query(tableTestRecords,
           where: 'SubjectId = ?', whereArgs: [subjectId]);
+      return res.isNotEmpty
+          ? res.map((e) => TestRecord.fromMap(e)).toList()
+          : [];
+    }
+    return [];
+  }
+
+  Future<List<TestRecord>> queryTestRecordsById(int id) async {
+    Database? db = await instance.database;
+    if (db != null) {
+      var res = await db.query(tableTestRecords,
+          where: 'id = ?', whereArgs: [id], limit: 1);
       return res.isNotEmpty
           ? res.map((e) => TestRecord.fromMap(e)).toList()
           : [];
@@ -696,6 +825,22 @@ class DatabaseHelper {
   Future<int> updateSpeechTable(SpeechTable table) =>
       update(tableSpeechTables, table.toMap(), 'Id', table.id!);
   Future<int> deleteSpeechTable(int id) => delete(tableSpeechTables, 'Id', id);
+  Future<List<SpeechTable>> querySpeechTablesById(int id) async {
+    Database? db = await instance.database;
+    if (db != null) {
+      List<Map<String, dynamic>> results = await db.query(
+        tableSpeechTables,
+        where: 'id = ?',
+        whereArgs: [id],
+        limit: 1, // 限制只返回1条
+      );
+
+      List<SpeechTable> speechTables =
+          results.map((e) => SpeechTable.fromMap(e)).toList();
+      return speechTables;
+    }
+    return List.empty();
+  }
 
   // 单位
   Future<int> insertOrganization(Organization org) =>

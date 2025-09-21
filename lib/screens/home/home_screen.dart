@@ -1,4 +1,8 @@
 import 'dart:async';
+import 'dart:io';
+import 'package:flutter/services.dart';
+import 'package:xinyutest/Global/database_utils.dart';
+import 'package:xinyutest/Global/email_utils.dart';
 import 'package:xinyutest/Global/local_service.dart';
 import 'package:xinyutest/dal/user/user_manager.dart';
 import 'package:xinyutest/screens/sgin_in/sign_in_screen.dart';
@@ -53,7 +57,7 @@ class HomeScreenState extends State<HomeScreen> {
   /// 检查当日是否进行过声场校准
   void checkIsCalibration(bool isJump) async {
     try {
-      print("checkIsCalibration:" + CalibrationValue.testedDevice);
+      print("checkIsCalibration:${CalibrationValue.testedDevice}");
       // String str = CalibrationValue.testingDevice +
       //     ',' +
       //     CalibrationValue.testedDevice +
@@ -63,7 +67,8 @@ class HomeScreenState extends State<HomeScreen> {
       // print('success');
       // var response = await dio
       //     .get(DioClient.baseurl + '/api/devicecalibration/' + str); //从API中获取信息
-      var response = await getCalibrationResponse(CalibrationValue.testingDevice, CalibrationValue.testingDevice);
+      var response = await getCalibrationResponse(
+          CalibrationValue.testingDevice, CalibrationValue.testingDevice);
       print(response);
       var status = response.status;
       isChecked = true;
@@ -126,11 +131,12 @@ class HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  void _getSubjects() async {
+  void _getSubjects(String userId) async {
     try {
-      var response = await dio.get(
-        DioClient.baseurl + '/api/subject',
-      );
+      // var response = await dio.get(
+      //   DioClient.baseurl + '/api/subject',
+      // );
+      var response = await getSubjectResponse(userId);
       var res = response.data;
       var status = res["status"] as int;
       if (status == 0) {
@@ -165,8 +171,9 @@ class HomeScreenState extends State<HomeScreen> {
     super.initState();
     // 获取设备信息以及是否进行过声场校准
     getDeviceInfo(false);
+    final user = UserManager().currentUser;
     //获取被试者名单
-    _getSubjects();
+    _getSubjects(user?.userphone);
 
     //==============================================================================
     //循环执行定时器，循环周期timeout=1s
@@ -196,7 +203,7 @@ class HomeScreenState extends State<HomeScreen> {
               GlobalBlueToothArgs.isBonded = d.device.isBonded;
               CalibrationValue.testedDevice = d.device.name!;
               GlobalBlueToothArgs.tip =
-                  '当前状态：已连接' + CalibrationValue.testedDevice;
+                  '当前状态：已连接${CalibrationValue.testedDevice}';
             }
           }
         }
@@ -235,7 +242,6 @@ class HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     Size size = MediaQuery.of(context).size;
-    final user = UserManager().currentUser;
 
     return Scaffold(
       body: Padding(
@@ -341,9 +347,9 @@ class HomeScreenState extends State<HomeScreen> {
                 // print(GlobalBlueToothArgs().isConnected ? "未连接设备" : ("已连接设备：" + GlobalBlueToothArgs.curAddress));
                 //==============================================================================
                 // 若未开启蓝牙则打开蓝牙
-                Navigator.of(context).push(MaterialPageRoute(builder: (context) => const WaterRipples()));
-                // openBluetooth();
-                //==============================================================================
+
+                Navigator.of(context).push(MaterialPageRoute(
+                    builder: (context) => const WaterRipples()));
               },
             ),
             SizedBox(
@@ -393,20 +399,118 @@ class HomeScreenState extends State<HomeScreen> {
               },
             ),
 
-            DefaultBorderButton(
-                text: '退出登录',
-                press: () {
-                  Navigator.pushNamed(context, SignInScreen.routeName);
-                }),
+            // Row(
+            //   children: [
+
+            //   ],
+            // ),
+
+            SizedBox(
+                width: size.width,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    DefaultBorderButton(
+                        text: '退出登录',
+                        press: () {
+                          UserManager().logout();
+                          Navigator.pushNamed(context, SignInScreen.routeName);
+                        }),
+                    DefaultBorderButton(
+                        text: "发送数据",
+                        press: () {
+                          showEmailDialog(context);
+                        }),
+                  ],
+                )),
+
             SizedBox(
               height: size.height * 0.03,
             ),
             Text(
-              "版本号：" + Version.version,
+              "版本号：${Version.version}",
             ),
           ],
         ),
       ),
     );
   }
+}
+
+void showEmailDialog(BuildContext context) {
+  final TextEditingController emailController = TextEditingController();
+  final GlobalKey<FormState> formKey = GlobalKey<FormState>();
+
+  showDialog(
+    context: context,
+    builder: (context) {
+      return AlertDialog(
+        title: const Text("请输入邮箱"),
+        content: Form(
+          key: formKey,
+          child: TextFormField(
+            controller: emailController,
+            decoration: const InputDecoration(
+              hintText: "example@email.com",
+            ),
+            keyboardType: TextInputType.emailAddress,
+            validator: (value) {
+              if (value == null || value.isEmpty) {
+                return "邮箱不能为空";
+              }
+              // 简单的邮箱格式校验正则
+              final emailRegex = RegExp(r'^[^@]+@[^@]+\.[^@]+');
+              if (!emailRegex.hasMatch(value)) {
+                return "请输入正确的邮箱格式";
+              }
+              return null;
+            },
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop(); // 关闭窗口
+            },
+            child: const Text("取消"),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              if (formKey.currentState!.validate()) {
+                if (DatabaseHelper.instance.db_path == null) {
+                  AppTool().showDefineAlert(context, "警告", "未找到数据");
+                } else {
+                  String email = emailController.text.trim();
+                  try {
+                    await sendEmailWithAttachment(
+                        email, File(DatabaseHelper.instance.db_path!));
+                    _sendEmailAction(context, email);
+                  } catch (e) {
+                    AppTool().showDefineAlert(context, "警告", e.toString());
+                  }
+
+                  Navigator.of(context).pop(); // 校验通过才关闭窗口
+
+                }
+
+              }
+            },
+            child: const Text("确认"),
+          ),
+        ],
+      );
+    },
+  );
+}
+
+/// 发送邮箱
+void _sendEmailAction(BuildContext context, String email) {
+  // 这里仅做示例：显示发送成功提示
+  ScaffoldMessenger.of(context).showSnackBar(
+    SnackBar(
+      content: Text("已向 $email 发送数据，请注意查收"),
+      backgroundColor: Colors.green,
+      duration: const Duration(seconds: 2),
+    ),
+  );
 }

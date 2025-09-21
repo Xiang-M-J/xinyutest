@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:dio/dio.dart';
 
 import 'package:flutter/material.dart';
+import 'package:xinyutest/Global/local_service.dart';
 import 'package:xinyutest/config/constants.dart';
 import '../../Global/calibration_values.dart';
 import '../../Global/dio_client.dart';
@@ -69,15 +70,25 @@ class CalibrationScreenState extends State<CalibrationScreen> {
       var recordAudio = File(CalibrationValue.recordPath);
       print(CalibrationValue.recordPath);
       print(await recordAudio.exists());
-      var formData = FormData.fromMap({
-        'audio': await MultipartFile.fromFile(recordAudio.path),
+      // var formData = FormData.fromMap({
+      //   'audio': await MultipartFile.fromFile(recordAudio.path),
+      //   "testingDevice": CalibrationValue.testingDevice,
+      //   "testedDevice": CalibrationValue.testedDevice,
+      //   "createTime": CalibrationValue.testTime.substring(0, 10),
+      //   "playVolume": CalibrationValue.calibrationVolume,
+      //   "microphoneCalibrationValue": CalibrationValue.micCalibrationDB,
+      //   "speakerCalibrationValue": CalibrationValue.calibrationDB,
+      // });
+
+      var formData = {
+        // 'audio': await MultipartFile.fromFile(recordAudio.path),
         "testingDevice": CalibrationValue.testingDevice,
         "testedDevice": CalibrationValue.testedDevice,
         "createTime": CalibrationValue.testTime.substring(0, 10),
         "playVolume": CalibrationValue.calibrationVolume,
         "microphoneCalibrationValue": CalibrationValue.micCalibrationDB,
         "speakerCalibrationValue": CalibrationValue.calibrationDB,
-      });
+      };
 
       // if (await recordAudio.exists()) {
       //   var requestData = {
@@ -89,10 +100,12 @@ class CalibrationScreenState extends State<CalibrationScreen> {
       //     "speakerCalibrationValue": CalibrationValue.calibrationDB,
       //     "audio": recordAudio
 
-      var response = await dio
-          .post(DioClient.baseurl + '/api/devicecalibration', data: formData);
+      // var response = await dio
+      //     .post(DioClient.baseurl + '/api/devicecalibration', data: formData);
+      
+      var response = await postCalibrationResponse(formData);
       var res = response.data;
-      print(res);
+      // print(res);
       var status = res["status"] as int;
       if (status == 0) {
         setState(() {

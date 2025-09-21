@@ -39,7 +39,8 @@ class MyApp extends StatelessWidget {
         statuses = await [
           Permission.bluetoothConnect,
           Permission.bluetoothScan,
-          Permission.location
+          Permission.location,
+          Permission.storage
         ].request();
         if (statuses[Permission.bluetoothConnect] != PermissionStatus.granted) {
           print("bluetoothConnect 未授权");
@@ -56,8 +57,17 @@ class MyApp extends StatelessWidget {
         } else {
           print("location 已授权");
         }
+        if (statuses[Permission.storage] != PermissionStatus.granted) {
+          print("storage 未授权");
+        } else {
+          print("storage 已授权");
+        }
       } else {
-        statuses = await [Permission.bluetooth, Permission.location].request();
+        statuses = await [
+          Permission.bluetooth,
+          Permission.location,
+          Permission.storage
+        ].request();
         if (statuses[Permission.bluetooth] != PermissionStatus.granted) {
           print("bluetooth 未授权");
         } else {
@@ -67,6 +77,11 @@ class MyApp extends StatelessWidget {
           print("location 未授权");
         } else {
           print("location 已授权");
+        }
+        if (statuses[Permission.storage] != PermissionStatus.granted) {
+          print("storage 未授权");
+        } else {
+          print("storage 已授权");
         }
       }
     } else {
@@ -99,7 +114,8 @@ class MyApp extends StatelessWidget {
       // 设置文字大小不随系统设置改变
       builder: (context, widget) {
         return MediaQuery(
-          data: MediaQuery.of(context).copyWith(textScaler: const TextScaler.linear(1.0)),
+          data: MediaQuery.of(context)
+              .copyWith(textScaler: const TextScaler.linear(1.0)),
           child: widget as Widget,
         );
       },

@@ -1,10 +1,14 @@
 import 'dart:convert';
+import 'dart:ffi';
 import 'package:dio/dio.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:xinyutest/Global/database_utils.dart';
+import 'package:xinyutest/Global/hash_util.dart';
 import 'package:xinyutest/Global/local_service.dart';
 import 'package:xinyutest/dal/user/user_manager.dart';
 import 'package:xinyutest/dal/user/userdata.dart';
+import 'package:xinyutest/screens/home/home_screen.dart';
 import '../../../Global/dio_client.dart';
 import '../../../components/AppTool.dart';
 import '../../../components/custom_surfix_icon.dart';
@@ -33,17 +37,19 @@ class _SignUpFormState extends State<SignUpForm> {
   final List<String?> errors = [];
 
   void addError({String? error}) {
-    if (!errors.contains(error))
+    if (!errors.contains(error)) {
       setState(() {
         errors.add(error);
       });
+    }
   }
 
   void removeError({String? error}) {
-    if (errors.contains(error))
+    if (errors.contains(error)) {
       setState(() {
         errors.remove(error);
       });
+    }
   }
 
   @override
@@ -98,9 +104,17 @@ class _SignUpFormState extends State<SignUpForm> {
                     // if all are valid then go to success screen
                     User user = User(phone!, password!, remember);
                     await UserManager().login(user);
-                    Navigator.of(context).push(MaterialPageRoute(
-                        builder: (context) =>
-                            LoginSuccessScreen(textValue: false)));
+
+                    print('Initializing database for user: $phone');
+                    await DatabaseHelper.instance.init(phone!);
+                    AspNetUser aspuser = AspNetUser(phoneNumber: phone, realName: name,
+                     passwordHash: HashUtils.md5Hash(password!), organizationId: int.parse(organization_id!));
+                    int result = await DatabaseHelper.instance.insertAspNetUser(aspuser);
+                    print(result);
+                    Navigator.pushNamed(context, HomeScreen.routeName);
+                    // Navigator.of(context).push(MaterialPageRoute(
+                    //     builder: (context) =>
+                    //         LoginSuccessScreen(textValue: false)));
                   } else {
                     var error = res['error'];
                     setState(() {
@@ -303,18 +317,18 @@ class _SignUpFormState extends State<SignUpForm> {
                 title: const Text('请选择权限'),
                 actions: <Widget>[
                   CupertinoActionSheetAction(
-                    child: const Text('数据收集'),
                     onPressed: () {
                       Navigator.of(context).pop('数据收集');
                     },
                     isDefaultAction: true,
+                    child: const Text('数据收集'),
                   ),
                   CupertinoActionSheetAction(
-                    child: const Text('数据主管'),
                     onPressed: () {
                       Navigator.of(context).pop('数据主管');
                     },
                     isDestructiveAction: true,
+                    child: const Text('数据主管'),
                   ),
                 ],
                 cancelButton: CupertinoActionSheetAction(

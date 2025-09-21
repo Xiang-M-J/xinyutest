@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:xinyutest/Global/dio_client.dart';
+import 'package:xinyutest/Global/local_service.dart';
 import 'package:xinyutest/Global/test_record.dart';
+import 'package:xinyutest/Global/user_role.dart';
 import 'package:xinyutest/components/AppTool.dart';
 import 'package:xinyutest/config/constants.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:xinyutest/config/size_config.dart';
+import 'package:xinyutest/dal/user/user_manager.dart';
 
 class SubjectRecordDetail extends StatefulWidget {
   const SubjectRecordDetail({super.key});
@@ -16,13 +19,17 @@ class SubjectRecordDetail extends StatefulWidget {
 class _SubjectRecordDetailState extends State<SubjectRecordDetail> {
   var dio = DioClient.dio;
   List _result = List.empty();
+  String? userId;
 
   //获取测听详情
   void _getResource() async {
     String idStr = TestRecord.id.toString();
     try {
-      var response =
-          await dio.get(DioClient.baseurl + '/api/testrecord/' + idStr);
+      // var response =
+      //     await dio.get(DioClient.baseurl + '/api/testrecord/' + idStr);
+        
+      var response = await getTestRecordByIdResponse(userId, TestRecord.id);
+      
       var res = response.data;
       var status = res["status"] as int;
       if (status == 0) {
@@ -40,6 +47,7 @@ class _SubjectRecordDetailState extends State<SubjectRecordDetail> {
   void initState() {
     // TODO: implement initState
     super.initState();
+    userId = UserManager().currentUser?.userphone;
     _getResource();
   }
 

@@ -10,7 +10,7 @@ class CalibrationTipScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Calibration Tip"),
+        title: const Text("Calibration Tip"),
       ),
       body: SafeArea(
         child: SizedBox(

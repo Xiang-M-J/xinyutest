@@ -1,5 +1,7 @@
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
+import 'package:xinyutest/Global/local_service.dart';
+import 'package:xinyutest/dal/user/user_manager.dart';
 import 'package:xinyutest/screens/audiometry/setting_audio.dart';
 import 'package:volume_controller/volume_controller.dart';
 import '../../Global/calibration_values.dart';
@@ -95,13 +97,17 @@ class AudiometryExercisePageState extends State<AudiometryExercisePage> {
   List<bool> doneList = List.empty(growable: true);
   bool isDone = false;
 
+  String? userId;
+
   // bool  = true;
 
   void getSource() async {
     try {
-      var response = await dio.get(
-        DioClient.baseurl + '/api/speechtable/' + TestRecord.tableId.toString(),
-      );
+      // var response = await dio.get(
+      //   DioClient.baseurl + '/api/speechtable/' + TestRecord.tableId.toString(),
+      // );
+
+      var response = await getSpeechTableByIdResponse(userId, TestRecord.tableId);
       var res = response.data;
       var status = res["status"] as int;
       if (status == 0) {
@@ -146,8 +152,9 @@ class AudiometryExercisePageState extends State<AudiometryExercisePage> {
     try {
       setState(() {
         if (_playIndex < _playSumNumber) {
+          // TODO 将speech_resources写死
           _keywordNumber =
-              responseData[_playIndexList[_playIndex]]["keywordNumber"];
+              responseData[_playIndexList[_playIndex]]["keywordNumber"];   //
 
           var tempk = responseData[_playIndexList[_playIndex]]
               ["keywords"]; // 更新用于生成界面关键词组件的列表
@@ -240,6 +247,7 @@ class AudiometryExercisePageState extends State<AudiometryExercisePage> {
   @override
   void initState() {
     super.initState();
+    userId = UserManager().currentUser?.userphone;
     InitValues();
     TestRecord.mode = "练习模式";
     controller.addListener(onScroll);

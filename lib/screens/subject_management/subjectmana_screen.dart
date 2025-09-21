@@ -7,7 +7,7 @@ class SubjectManagementScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("SubjectManagement"),
+        title: const Text("SubjectManagement"),
       ),
       body: Body(),
     );

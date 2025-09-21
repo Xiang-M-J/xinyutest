@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:xinyutest/Global/dio_client.dart';
+import 'package:xinyutest/Global/local_service.dart';
+import 'package:xinyutest/dal/user/user_manager.dart';
 import '../../Global/subject_list.dart';
 import '../../Global/test_record.dart';
 import '../../config/constants.dart';
@@ -18,23 +20,29 @@ class _SubjectRecordFormState extends State<SubjectRecordForm> {
   var dio = DioClient.dio;
 
   var _sourceData;
+  String? userId;
   // var keyWords;
 
   // 获取对应的测试记录
   void _getTestRecord() async {
     try {
-      String idStr = TestRecord.subjectId.toString();
-      var response = await dio.get(
-        DioClient.baseurl + '/api/subject/' + idStr,
-      );
+      // String idStr = TestRecord.subjectId.toString();
+      // var response = await dio.get(
+      //   DioClient.baseurl + '/api/subject/' + idStr,
+      // );
+
+      var response = await getSubjectByIdResponse(userId, TestRecord.subjectId);
       var res = response.data;
       var status = res["status"] as int;
       if (status == 0) {
         _sourceData = res["data"];
       }
-      var responseRecords = await dio.get(
-        DioClient.baseurl + '/api/subject/' + idStr + '/testrecords',
-      );
+      // var responseRecords = await dio.get(
+      //   DioClient.baseurl + '/api/subject/' + idStr + '/testrecords',
+      // );
+
+      var responseRecords = await getSubjectTestRecordByIdResponse(userId, TestRecord.subjectId);
+
       var resrecords = responseRecords.data;
       var statusrecords = resrecords["status"] as int;
       if (statusrecords == 0) {
@@ -54,6 +62,7 @@ class _SubjectRecordFormState extends State<SubjectRecordForm> {
   void initState() {
     // TODO: implement initState
     super.initState();
+    userId = UserManager().currentUser?.userphone;
     // initial();
     _getTestRecord();
 
@@ -139,7 +148,7 @@ class _SubjectRecordFormState extends State<SubjectRecordForm> {
 
   SizedBox _subjectTestRecords(var sourceData) {
     if (sourceData == null || sourceData.length == 0) {
-      return SizedBox();
+      return const SizedBox();
     } else {
       return SizedBox(
         height: SizeConfig.screenHeight * 0.5,
@@ -161,7 +170,7 @@ class _SubjectRecordFormState extends State<SubjectRecordForm> {
                         "    强度：" +
                         e["playVolume"].toString() +
                         "dB A",
-                    style: TextStyle(color: Colors.black, fontSize: 18)),
+                    style: const TextStyle(color: Colors.black, fontSize: 18)),
                 onTap: () {
                   if (UserRole.role == '数据主管') {
                     if (e["result"].length == 0) {
@@ -179,7 +188,7 @@ class _SubjectRecordFormState extends State<SubjectRecordForm> {
                   }
                 },
               ),
-              Divider(
+              const Divider(
                 height: 2,
                 color: Colors.black,
               )

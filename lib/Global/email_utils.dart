@@ -24,14 +24,20 @@ Future<File> createZipFile(List<File> files) async {
 
 
 
-Future<void> sendEmailWithAttachment(File zipFile) async {
+Future<void> sendEmailWithAttachment(String address, File zipFile) async {
+  bool exist = await zipFile.exists();
+  print("exist: $exist");
   final Email email = Email(
     body: '请查收附件',
-    subject: '打包文件',
-    recipients: ['target@example.com'],
+    subject: '测试数据',
+    recipients: [address],
     attachmentPaths: [zipFile.path],
     isHTML: false,
   );
 
+
+
   await FlutterEmailSender.send(email);
 }
+
+// Future<void> sendEmailWithFile()

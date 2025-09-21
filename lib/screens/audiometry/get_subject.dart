@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:xinyutest/Global/local_service.dart';
+import 'package:xinyutest/dal/user/user_manager.dart';
 import 'package:xinyutest/screens/audiometry/setting_audio.dart';
 import '../../Global/dio_client.dart';
 import '../../Global/exercise.dart';
@@ -28,9 +30,11 @@ class GetSubjectPageState extends State<GetSubjectPage> {
   String searchName = '';
   var searchResult;
   var searchResultTestRecord;
+  String? userId;
   @override
   void initState() {
     super.initState();
+    userId = UserManager().currentUser?.userphone;
     searchResult = SubjectsList.subjects;
   }
 
@@ -79,9 +83,11 @@ class GetSubjectPageState extends State<GetSubjectPage> {
                       searchName = value;
                       try {
                         //拉取符合条件的id—list
-                        var response = await dio.get(
-                          DioClient.baseurl + '/api/subject/' + searchName,
-                        );
+                        // var response = await dio.get(
+                        //   DioClient.baseurl + '/api/subject/' + searchName,
+                        // );
+
+                        var response = await getSubjectByNameResponse(userId, searchName);
                         var res = response.data;
                         var status = res["status"] as int;
                         if (status == 0) {

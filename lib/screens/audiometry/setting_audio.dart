@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:xinyutest/Global/local_service.dart';
 import 'package:xinyutest/screens/home/home_screen.dart';
 import '../../Global/dio_client.dart';
 import '../../Global/exercise.dart';
@@ -74,9 +75,12 @@ class SettingAudioPageState extends State<SettingAudioPage> {
 
   void getSource(String strMode) async {
     try {
-      var response = await dio.get(
-        DioClient.baseurl + '/api/speechtable/' + strMode,
-      );
+      // var response = await dio.get(
+      //   DioClient.baseurl + '/api/speechtable/' + strMode,
+      // );
+
+      var response = await getSpeechTableByModeResponse(strMode);
+      
       var res = response.data;
       var status = res["status"] as int;
       if (status == 0) {
@@ -85,7 +89,7 @@ class SettingAudioPageState extends State<SettingAudioPage> {
         for (int i = 0; i < temp.length; i++) {
           _tableList.add(temp[i].toString());
         }
-        print("hello: "+_tableList.join(","));
+        print("hello: ${_tableList.join(",")}");
         setState(() {
           if (strMode == "Normal") {
             _tableList.shuffle(); // 打乱顺序
@@ -95,13 +99,13 @@ class SettingAudioPageState extends State<SettingAudioPage> {
             if (ExerciseInfo.isFirstExercise) {
               _tableList.removeAt(1);
               _table_index = _tableList[0];
-              print("hello: "+_tableList.join(","));
+              print("hello: ${_tableList.join(",")}");
 
               ExerciseInfo.isFirstExercise = false;
             } else {
               _tableList.removeAt(0);
               _table_index = _tableList[0];
-              print("hello: "+_tableList.join(","));
+              print("hello: ${_tableList.join(",")}");
 
               ExerciseInfo.isFirstExercise = true;
             }

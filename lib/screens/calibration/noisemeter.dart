@@ -136,10 +136,7 @@ class NoiseMeterPageState extends State<NoiseMeterPage> {
       });
 
       var tempDirPath = (await getTemporaryDirectory()).path;
-      tempAudioPath = tempDirPath +
-          "/" +
-          DateTime.now().millisecondsSinceEpoch.toString() +
-          "calibrationAudio.wav";
+      tempAudioPath = "$tempDirPath/${DateTime.now().millisecondsSinceEpoch}calibrationAudio.wav";
       _recorder.startRecorder(
           codec: Codec.pcm16WAV,
           toFile: tempAudioPath,
@@ -224,13 +221,11 @@ class NoiseMeterPageState extends State<NoiseMeterPage> {
         }
         if (_aveDecibel <= 50) {
           _resultText =
-              '当前环境评估结果：合格\n' + _aveDecibel.toString().substring(0, 4) + ' dB';
+              '当前环境评估结果：合格\n${_aveDecibel.toString().substring(0, 4)} dB';
           _isContinue = true;
           CalibrationValue.micCalibrationDB = _aveDecibel.round();
         } else {
-          _resultText = '场所噪声偏高，请到安静场所测试。\n' +
-              _aveDecibel.toString().substring(0, 4) +
-              ' dB';
+          _resultText = '场所噪声偏高，请到安静场所测试。\n${_aveDecibel.toString().substring(0, 4)} dB';
           _isContinue = false;
         }
       });
@@ -245,9 +240,9 @@ class NoiseMeterPageState extends State<NoiseMeterPage> {
             margin: const EdgeInsets.all(25),
             child: Column(children: [
               Container(
+                margin: const EdgeInsets.only(top: 20),
                 child: Text(_isRecording ? "Mic: ON" : "Mic: OFF",
                     style: const TextStyle(fontSize: 25, color: Colors.blue)),
-                margin: const EdgeInsets.only(top: 20),
               )
             ])),
       ];
@@ -312,17 +307,17 @@ class NoiseMeterPageState extends State<NoiseMeterPage> {
                           }
                         },
                         style: ButtonStyle(
-                            shape: MaterialStateProperty.all(
+                            shape: WidgetStateProperty.all(
                                 RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(50.0))),
-                            backgroundColor: MaterialStateProperty.all(
+                            backgroundColor: WidgetStateProperty.all(
                                 _isRecording ? Colors.red : Colors.green),
-                            padding: MaterialStateProperty.all(
+                            padding: WidgetStateProperty.all(
                                 const EdgeInsets.symmetric(
                               vertical: 10.0,
                               horizontal: 20.0,
                             )),
-                            textStyle: MaterialStateProperty.all(
+                            textStyle: WidgetStateProperty.all(
                                 const TextStyle(color: Colors.white))),
                         child: Row(
                             mainAxisAlignment: MainAxisAlignment.center,

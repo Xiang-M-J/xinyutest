@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:xinyutest/Global/local_service.dart';
 import 'package:xinyutest/Global/user_role.dart';
+import 'package:xinyutest/dal/user/user_manager.dart';
 import 'package:xinyutest/screens/subject_management/components/subjects_list.dart';
 import '../../../Global/dio_client.dart';
 import '../../../Global/subject_list.dart';
@@ -28,15 +30,18 @@ class _SubjectManagementFormState extends State<SubjectManagementForm> {
   DateTime? newDate = DateTime.now();
 
   late StateSetter _deleteSetter;
+  String? userId;   // 使用手机号作为ID
 
   var dio = DioClient.dio;
   String searchName = '';
 
+
   void _getSubjects() async {
     try {
-      var response = await dio.get(
-        DioClient.baseurl + '/api/subject',
-      );
+      // var response = await dio.get(
+      //   DioClient.baseurl + '/api/subject',
+      // );
+      var response = await getSubjectResponse(userId);
       var res = response.data;
       var status = res["status"] as int;
       if (status == 0) {
@@ -68,6 +73,8 @@ class _SubjectManagementFormState extends State<SubjectManagementForm> {
   @override
   void initState() {
     super.initState();
+    final user = UserManager().currentUser;
+    userId = user?.userphone;
     _getSubjects();
   }
 
@@ -150,11 +157,14 @@ class _SubjectManagementFormState extends State<SubjectManagementForm> {
                             TestRecord.subjectId =
                                 SubjectsList.subjects[i]["id"];
                             try {
-                              var response = await dio.delete(
-                                DioClient.baseurl +
-                                    '/api/subject/' +
-                                    TestRecord.subjectId.toString(),
-                              );
+                              // var response = await dio.delete(
+                              //   DioClient.baseurl +
+                              //       '/api/subject/' +
+                              //       TestRecord.subjectId.toString(),
+                              // );
+                              
+                              var response = await deleteSubjectResponse(userId, TestRecord.subjectId);
+
                               var res = response.data;
                               var status = res["status"] as int;
                               if (status == 0) {
@@ -182,10 +192,10 @@ class _SubjectManagementFormState extends State<SubjectManagementForm> {
                         } else {
                           tips = '操作完成！';
                           if (isSucceed > 0) {
-                            tips += '成功' + isSucceed.toString() + '位.';
+                            tips += '成功$isSucceed位.';
                           }
                           if (isFailed > 0) {
-                            tips += '失败' + isSucceed.toString() + '位.';
+                            tips += '失败$isSucceed位.';
                           }
                         }
                        
@@ -209,9 +219,11 @@ class _SubjectManagementFormState extends State<SubjectManagementForm> {
             onChanged: (value) async {
               searchName = value;
               try {
-                var response = await dio.get(
-                  DioClient.baseurl + '/api/subject/' + searchName,
-                );
+                // var response = await dio.get(
+                //   DioClient.baseurl + '/api/subject/' + searchName,
+                // );
+
+                var response = await getSubjectByNameResponse(userId, searchName);
                 var res = response.data;
                 var status = res["status"] as int;
                 if (status == 0) {

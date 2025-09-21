@@ -1,8 +1,9 @@
-import 'dart:math';
 
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:xinyutest/Global/local_service.dart';
+import 'package:xinyutest/dal/user/user_manager.dart';
 import 'package:xinyutest/screens/audiometry/setting_audio.dart';
 import 'package:volume_controller/volume_controller.dart';
 import '../../Global/calibration_values.dart';
@@ -26,7 +27,7 @@ import 'package:path_provider/path_provider.dart';
 class AudiometryScreenPage extends StatefulWidget {
   /// 模式 0:练习模式  1：执行模式
   final int Mode;
-  AudiometryScreenPage({Key? key, this.Mode = 0}) : super(key: key);
+  const AudiometryScreenPage({Key? key, this.Mode = 0}) : super(key: key);
   @override
   AudiometryScreenPageState createState() => AudiometryScreenPageState();
 }
@@ -42,8 +43,10 @@ class AudiometryScreenPageState extends State<AudiometryScreenPage> {
   //提示文本
   String returnText = "中止";
 
+  String? userId;
+
   ///录音
-  FlutterSoundRecorder _recorder = FlutterSoundRecorder();
+  final FlutterSoundRecorder _recorder = FlutterSoundRecorder();
 
   ///录音音频路径
   String recordAudioPath = '';
@@ -94,7 +97,7 @@ class AudiometryScreenPageState extends State<AudiometryScreenPage> {
   String tipText = '开始';
 
   /// 用于乱序播放句子
-  List _playIndexList = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
+  final List _playIndexList = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
 
   ///存储语句测试详情
   List<List> _result = List.empty(growable: true);
@@ -125,9 +128,11 @@ class AudiometryScreenPageState extends State<AudiometryScreenPage> {
 
   void getSource() async {
     try {
-      var response = await dio.get(
-        DioClient.baseurl + '/api/speechtable/' + TestRecord.tableId.toString(),
-      );
+      // var response = await dio.get(
+      //   DioClient.baseurl + '/api/speechtable/' + TestRecord.tableId.toString(),
+      // );
+      var response = await getSpeechTableByIdResponse(userId, TestRecord.tableId);
+    
       var res = response.data;
       var status = res["status"] as int;
       if (status == 0) {
@@ -256,10 +261,24 @@ class AudiometryScreenPageState extends State<AudiometryScreenPage> {
       print(await File(delAudioPath[i]).exists());
     }
     //DateTime time  = DateTime.now();
-    var requestData = FormData.fromMap({
+    // var requestData = FormData.fromMap({
+    //   "subjectId": TestRecord.subjectId,
+    //   "mode": TestRecord.mode,
+    //   //"createTime": time.toString(),
+    //   "hearingStatus": TestRecord.hearingStatus,
+    //   "corpusType": TestRecord.corpusType,
+    //   "environment": TestRecord.environment,
+    //   "tableId": TestRecord.tableId,
+    //   "playVolume": TestRecord.playVolumeDB,
+    //   "result": TestRecord.result,
+    //   "accuracy": TestRecord.accuracy,
+    //   "audiolist": audioList
+    // });
+
+    var requestData = {
       "subjectId": TestRecord.subjectId,
       "mode": TestRecord.mode,
-      //"createTime": time.toString(),
+      // "createTime": time.toString(),
       "hearingStatus": TestRecord.hearingStatus,
       "corpusType": TestRecord.corpusType,
       "environment": TestRecord.environment,
@@ -267,11 +286,14 @@ class AudiometryScreenPageState extends State<AudiometryScreenPage> {
       "playVolume": TestRecord.playVolumeDB,
       "result": TestRecord.result,
       "accuracy": TestRecord.accuracy,
-      "audiolist": audioList
-    });
+    };
+
     // print(requestData);
-    var response = await dio.post('${DioClient.baseurl}/api/testrecord',
-        data: requestData);
+    // var response = await dio.post('${DioClient.baseurl}/api/testrecord',
+    //     data: requestData);
+
+    var response = await postTestRecordResponse(userId, requestData);
+    
     var res = response.data;
     var status = res["status"] as int;
     if (status == 0) {
@@ -328,6 +350,7 @@ class AudiometryScreenPageState extends State<AudiometryScreenPage> {
   void initState() {
     // TODO: implement initState
     super.initState();
+    userId = UserManager().currentUser?.userphone;
     micphoneRequest();
     InitValues();
     TestRecord.mode = widget.Mode == 0 ? "练习模式" : "正式模式";
