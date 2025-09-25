@@ -10,8 +10,8 @@ class paintAudiogram extends StatefulWidget {
 
 class _paintAudiogramState extends State<paintAudiogram> {
   List<Color> gradientColors = [
-    Color.fromARGB(255, 187, 219, 255),
-    Color.fromARGB(255, 33, 137, 255),
+    const Color.fromARGB(255, 187, 219, 255),
+    const Color.fromARGB(255, 33, 137, 255),
   ];
 
   @override
@@ -34,7 +34,7 @@ class _paintAudiogramState extends State<paintAudiogram> {
               ),
             ),
           ),
-          Positioned(
+          const Positioned(
             top: 5,
             left: 15,
             child: Text(
@@ -46,7 +46,7 @@ class _paintAudiogramState extends State<paintAudiogram> {
                   decoration: TextDecoration.none),
             ),
           ),
-          Positioned(
+          const Positioned(
               right: 0,
               bottom: 39,
               child: Text('频率/Hz',
@@ -133,9 +133,9 @@ class _paintAudiogramState extends State<paintAudiogram> {
           topTitles: SideTitles(showTitles: false)),
       borderData: FlBorderData(
           show: true,
-          border: Border(
-              left: BorderSide(color: const Color(0xff37434d), width: 1),
-              bottom: BorderSide(color: const Color(0xff37434d), width: 1))),
+          border: const Border(
+              left: BorderSide(color: Color(0xff37434d), width: 1),
+              bottom: BorderSide(color: Color(0xff37434d), width: 1))),
       minX: 0,
       maxX: 6.2,
       minY: 0,

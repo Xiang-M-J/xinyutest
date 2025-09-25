@@ -521,3 +521,35 @@ Future<Response> getSpeechTableByModeResponse(String mode) async {
     return ErrorResponse("错误");
   }
 }
+
+String convertAudiogramData(Map data){
+  String result = "";
+  for (var key in data.keys) {
+    result = "${result}_${data[key]}";
+  }
+  return result.substring(1);
+}
+
+// 上传TestRecord
+Future<Response> postAudiogramResponse(String? userId, Map requestData) async {
+  if (userId == null) {
+    return ErrorResponse("用户未登录");
+  }
+
+  try {
+    int result = await DatabaseHelper.instance.insertAudiogram(Audiogram(
+      subjectId: requestData['subjectId'] as int,
+      interviewerId: 1,
+      ear: requestData['ear'] as String,
+      createTime: "",
+      data: convertAudiogramData(requestData['data'] as Map)
+    ));
+    if (result <= 0) {
+      return ErrorResponse("数据库操作错误");
+    } else {
+      return SuccessResponse("");
+    }
+  } catch (e) {
+    return ErrorResponse("数据库操作错误");
+  }
+}

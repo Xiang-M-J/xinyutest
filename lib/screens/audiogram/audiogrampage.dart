@@ -1,10 +1,13 @@
+
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_pickers/pickers.dart';
 import 'package:flutter_pickers/style/picker_style.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:xinyutest/Global/local_service.dart';
 import 'package:xinyutest/config/size_config.dart';
+import 'package:xinyutest/dal/user/user_manager.dart';
 import 'package:xinyutest/screens/home/home_screen.dart';
 import 'package:xinyutest/screens/audiogram/components/paint.dart';
 import 'package:xinyutest/components/default_button.dart';
@@ -26,6 +29,7 @@ class _audiogramPageState extends State<audiogramPage> {
   @override
   var audioGramdata = audioGram.rightEarData;
   var dio = DioClient.dio;
+  String? userId;
 
   ///判断是否上传成功
   bool _isSuccess = true;
@@ -57,8 +61,9 @@ class _audiogramPageState extends State<audiogramPage> {
               "loss8000Hz": audioGram.leftEarData[6][1]
             }
           };
-          var response = await dio.post(DioClient.baseurl + '/api/audiogram',
-              data: requestData);
+          // var response = await dio.post(DioClient.baseurl + '/api/audiogram',
+          //     data: requestData);
+          var response = await postAudiogramResponse(userId, requestData);
           var res = response.data;
           var status = res["status"] as int;
           if (status == 0) {
@@ -87,8 +92,10 @@ class _audiogramPageState extends State<audiogramPage> {
               "loss8000Hz": audioGram.rightEarData[6][1]
             }
           };
-          var response = await dio.post(DioClient.baseurl + '/api/audiogram',
-              data: requestData);
+          // var response = await dio.post(DioClient.baseurl + '/api/audiogram',
+          //     data: requestData);
+
+          var response = await postAudiogramResponse(userId, requestData);
           var res = response.data;
           var status = res["status"] as int;
           if (status == 0) {
@@ -131,6 +138,7 @@ class _audiogramPageState extends State<audiogramPage> {
     @override
     void initState() {
       super.initState();
+      userId = UserManager().currentUser!.userphone;
     }
 
     @override
@@ -160,12 +168,12 @@ class _audiogramPageState extends State<audiogramPage> {
       body: SafeArea(
           child: Column(
         children: [
-          Text('提示'),
+          const Text('提示'),
           paintAudiogram(),
           SizedBox(
             height: SizeConfig.screenHeight * 0.05,
           ),
-          Container(
+          SizedBox(
               height: getProportionateScreenHeight(56),
               width: SizeConfig.screenWidth,
               child: Row(
