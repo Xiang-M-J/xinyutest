@@ -19,9 +19,11 @@ class ErrorResponse extends Response {
             data: {"status": 1, "error": error});
 }
 
-class SuccessResponse extends Response{
-  SuccessResponse(var data): super(requestOptions: RequestOptions(path: ""),
-  data: {"status": 0, "data": data});
+class SuccessResponse extends Response {
+  SuccessResponse(var data)
+      : super(
+            requestOptions: RequestOptions(path: ""),
+            data: {"status": 0, "data": data});
 }
 
 class LoginResponse {
@@ -151,7 +153,6 @@ Future<CalibrationResponse> getCalibrationResponse(
 }
 
 Future<Response> postCalibrationResponse(Map formData) async {
-  
   String testedDevice = formData['testedDevice'];
   String testingDevice = formData['testingDevice'];
   String filename = "${testingDevice}_$testedDevice.txt";
@@ -159,11 +160,12 @@ Future<Response> postCalibrationResponse(Map formData) async {
   final directory = await getApplicationDocumentsDirectory();
   final filePath = '${directory.path}/$filename';
 
-  String content = "${formData['micCalibrationDB']}\n${formData['calibrationDB']}\n${formData['playVolume']}";
+  String content =
+      "${formData['micCalibrationDB']}\n${formData['calibrationDB']}\n${formData['playVolume']}";
 
   try {
     bool is_success = await saveTextFile(filePath, content);
-    if (!is_success){
+    if (!is_success) {
       return ErrorResponse("出现错误");
     }
     bool is_exist = await File(filePath).exists();
@@ -334,7 +336,8 @@ Future<Response> putSubjectResponse(
 }
 
 // 获取Subject的record
-Future<Response> getSubjectTestRecordByIdResponse(String? userId, int id) async {
+Future<Response> getSubjectTestRecordByIdResponse(
+    String? userId, int id) async {
   List convertSubjects(List<TestRecord> records) {
     List results = List.empty(growable: true);
     for (var i = 0; i < records.length; i++) {
@@ -347,7 +350,8 @@ Future<Response> getSubjectTestRecordByIdResponse(String? userId, int id) async 
     return ErrorResponse("用户未登录");
   }
   try {
-    List<TestRecord> results = await DatabaseHelper.instance.queryTestRecordsBySubject(id);
+    List<TestRecord> results =
+        await DatabaseHelper.instance.queryTestRecordsBySubject(id);
     return Response(
       requestOptions: RequestOptions(path: ''),
       data: {"status": 0, "data": convertSubjects(results)},
@@ -359,12 +363,12 @@ Future<Response> getSubjectTestRecordByIdResponse(String? userId, int id) async 
 
 // 获取Record
 Future<Response> getTestRecordByIdResponse(String? userId, int id) async {
-
   if (userId == null) {
     return ErrorResponse("用户未登录");
   }
   try {
-    List<TestRecord> results = await DatabaseHelper.instance.queryTestRecordsById(id);
+    List<TestRecord> results =
+        await DatabaseHelper.instance.queryTestRecordsById(id);
     return Response(
       requestOptions: RequestOptions(path: ''),
       data: {"status": 0, "data": results[0].toMap()},
@@ -374,7 +378,7 @@ Future<Response> getTestRecordByIdResponse(String? userId, int id) async {
   }
 }
 
-List<Map> convertSpeechResources(List<SpeechResource> resources){
+List<Map> convertSpeechResources(List<SpeechResource> resources) {
   List<Map> results = List.empty(growable: true);
   for (var i = 0; i < resources.length; i++) {
     Map resource = resources[i].toMap();
@@ -388,19 +392,47 @@ List<Map> convertSpeechResources(List<SpeechResource> resources){
   return results;
 }
 
+int? findnonSemIndex(String keyword) {
+  int? result;
+  for (var i = 0; i < keyword.length; i++) {
+    if (keyword[i] == "#") {
+      result = i;
+      break;
+    }
+  }
+  return result;
+}
+
 // 获取SpeechTable
 Future<Response> getSpeechTableByIdResponse(String? userId, int id) async {
-
   if (userId == null) {
     return ErrorResponse("用户未登录");
   }
   try {
-    // List<SpeechTable> results = await DatabaseHelper.instance.querySpeechTablesById(id);
-    // if (results.isEmpty) {
-    //   return ErrorResponse("无语音表");
-    // }
-    // List<int> resources = List.empty(growable: true);
-    
+    List<SpeechResource> results =
+        await DatabaseHelper.instance.querySpeechResourcesByTableId(id);
+    if (results.isEmpty) {
+      return ErrorResponse("无语音表");
+    }
+    List<Map> resources = List.empty(growable: true);
+
+    for (var i = 0; i < results.length; i++) {
+      Map resource = results[i].toMap();
+      List<String> tmpKeywords = resource['keywords'].split("_");
+      List<Map> keywords = [];
+
+      for (var i = 0; i < tmpKeywords.length; i++) {
+        int? nonSemIndex = findnonSemIndex(tmpKeywords[i]);
+        keywords.add({
+          "keyword": tmpKeywords[i].replaceAll("#", ""),
+          'check': false,
+          'nonSemIndex': nonSemIndex
+        });
+      }
+      resource['keywords'] = keywords;
+      resources.add(resource);
+    }
+
     // if (results[0].resources != null) {
     //   List ids = results[0].resources!.split(',');
     //   for (var element in ids) {
@@ -409,31 +441,34 @@ Future<Response> getSpeechTableByIdResponse(String? userId, int id) async {
     // }
     // int? resourceNumber = results[0].resourceNumber;
     // resourceNumber ??= resources.length;
+    int resourceNumber = resources.length;
 
-    // return Response(
-    //   requestOptions: RequestOptions(path: ''),
-    //   data: {"status": 0, "data": {"resources": resources, "resourceNumber": resourceNumber}},
-    // );
+    return Response(
+      requestOptions: RequestOptions(path: ''),
+      data: {
+        "status": 0,
+        "data": {"resources": resources, "resourceNumber": resourceNumber}
+      },
+    );
 
-    Map data = Map.from(speechTables[id.toString()]);
-    data["resources"] = convertSpeechResources(data["resources"]);
-    return SuccessResponse(data);
+    // Map data = Map.from(speechTables[id.toString()]);
+    // data["resources"] = convertSpeechResources(data["resources"]);
+    // return SuccessResponse(data);
   } catch (e) {
     return ErrorResponse("数据库操作错误");
   }
 }
 
-
-String convertResult(List results){
-  String str_res = "";
+String convertResult(List results) {
+  String strRes = "";
 
   for (var i = 0; i < results.length; i++) {
     for (var j = 0; j < results[i].length; j++) {
-      str_res = "$str_res${results[i][j]['keyword']}: ${results[i][j]['check']}";
+      strRes = "$strRes${results[i][j]['keyword']}: ${results[i][j]['check']}";
     }
-    str_res = str_res + "\n";
+    strRes = "$strRes\n";
   }
-  return str_res;
+  return strRes;
 }
 
 // 上传TestRecord
@@ -443,19 +478,18 @@ Future<Response> postTestRecordResponse(String? userId, Map requestData) async {
   }
 
   try {
-    
     int result = await DatabaseHelper.instance.insertTestRecord(TestRecord(
-        subjectId: requestData['subjectId'] as int,
-        interviewerId: 1,
-        mode: requestData['mode'] as String,
-        createTime: "",
-        hearingStatus: requestData['hearingStatus'] as String,
-        corpusType: requestData['corpusType'] as String,
-        environment: requestData['environment'] as String,
-        tableId: requestData['tableId'] as int,
-        playVolume: requestData['playVolume'] as int,
-        result: convertResult(requestData['result'] as List),
-        accuracy: requestData['accuracy'] as String,
+      subjectId: requestData['subjectId'] as int,
+      interviewerId: 1,
+      mode: requestData['mode'] as String,
+      createTime: "",
+      hearingStatus: requestData['hearingStatus'] as String,
+      corpusType: requestData['corpusType'] as String,
+      environment: requestData['environment'] as String,
+      tableId: requestData['tableId'] as int,
+      playVolume: requestData['playVolume'] as int,
+      result: convertResult(requestData['result'] as List),
+      accuracy: requestData['accuracy'] as String,
     ));
     if (result <= 0) {
       return ErrorResponse("数据库操作错误");
@@ -469,17 +503,20 @@ Future<Response> postTestRecordResponse(String? userId, Map requestData) async {
   }
 }
 
-
 // 上传TestRecord
 Future<Response> getSpeechTableByModeResponse(String mode) async {
-
   try {
     // Map data = Map.from(speechTables['14']);
     // if (mode == "Normal"){
     //   data = Map.from(speechTables['13']);
     // }
     // data["resources"] = convertSpeechResources(data["resources"]);
-    return SuccessResponse([13, 14]);
+
+    if (mode == "Normal") {
+      return SuccessResponse([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]);
+    } else {
+      return SuccessResponse([13, 14]);
+    }
   } catch (e) {
     return ErrorResponse("错误");
   }

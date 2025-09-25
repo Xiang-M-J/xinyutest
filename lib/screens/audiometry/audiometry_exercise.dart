@@ -271,7 +271,14 @@ class AudiometryExercisePageState extends State<AudiometryExercisePage> {
 
   void play() async {
     print("开始播放音乐");
-    await audioPlayer?.play(AssetSource(_wavName));
+    if (_wavName.endsWith(".wav")) {
+      await audioPlayer?.play(AssetSource(_wavName));
+
+    }else{
+      // ignore: prefer_interpolation_to_compose_strings
+      await audioPlayer?.play(AssetSource(_wavName+".wav"));
+
+    }
     print('ok');
     // player?.play(_wavName);
   }

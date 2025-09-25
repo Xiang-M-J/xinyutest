@@ -59,6 +59,8 @@ dependencies:
   archive: ^3.4.10
   flutter_email_sender: ^6.0.3
   crypto: ^3.0.6
+  share_plus: ^4.5.3
+  csv: ^6.0.0
 
 
   # The following adds the Cupertino Icons font to your application.

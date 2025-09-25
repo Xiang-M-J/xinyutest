@@ -814,6 +814,23 @@ class DatabaseHelper {
       update(tableSpeechResources, resource.toMap(), 'Id', resource.id!);
   Future<int> deleteSpeechResource(int id) =>
       delete(tableSpeechResources, 'Id', id);
+    
+    Future<List<SpeechResource>> querySpeechResourcesByTableId(int tableId) async {
+    Database? db = await instance.database;
+    if (db != null) {
+      List<Map<String, dynamic>> results = await db.query(
+        tableSpeechResources,
+        where: 'tableId = ?',
+        whereArgs: [tableId],
+        // limit: 1, // 限制只返回1条
+      );
+
+      List<SpeechResource> speechResources =
+          results.map((e) => SpeechResource.fromMap(e)).toList();
+      return speechResources;
+    }
+    return List.empty();
+  }
 
   // 测试语音表
   Future<int> insertSpeechTable(SpeechTable table) =>
@@ -825,22 +842,6 @@ class DatabaseHelper {
   Future<int> updateSpeechTable(SpeechTable table) =>
       update(tableSpeechTables, table.toMap(), 'Id', table.id!);
   Future<int> deleteSpeechTable(int id) => delete(tableSpeechTables, 'Id', id);
-  Future<List<SpeechTable>> querySpeechTablesById(int id) async {
-    Database? db = await instance.database;
-    if (db != null) {
-      List<Map<String, dynamic>> results = await db.query(
-        tableSpeechTables,
-        where: 'id = ?',
-        whereArgs: [id],
-        limit: 1, // 限制只返回1条
-      );
-
-      List<SpeechTable> speechTables =
-          results.map((e) => SpeechTable.fromMap(e)).toList();
-      return speechTables;
-    }
-    return List.empty();
-  }
 
   // 单位
   Future<int> insertOrganization(Organization org) =>

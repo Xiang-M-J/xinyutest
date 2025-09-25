@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:xinyutest/Global/database_utils.dart';
 import 'package:xinyutest/Global/email_utils.dart';
 import 'package:xinyutest/Global/local_service.dart';
+import 'package:xinyutest/Global/share_utils.dart';
 import 'package:xinyutest/dal/user/user_manager.dart';
 import 'package:xinyutest/screens/sgin_in/sign_in_screen.dart';
 import 'package:flutter/material.dart';
@@ -22,6 +23,7 @@ import '../audiometry/get_subject.dart';
 import '../calibration/water_ripples.dart';
 import 'package:xinyutest/Global/subject_list.dart';
 import 'package:xinyutest/config/size_config.dart';
+import 'package:csv/csv.dart';
 
 class HomeScreen extends StatefulWidget {
   static String routeName = "/home";
@@ -36,6 +38,7 @@ class HomeScreenState extends State<HomeScreen> {
   bool isChecked = false;
 
   var dio = DioClient.dio;
+  List<SpeechResource> speechresources = List.empty(growable: true);
 
   late final Timer periodicTimer;
 
@@ -172,6 +175,7 @@ class HomeScreenState extends State<HomeScreen> {
     // 获取设备信息以及是否进行过声场校准
     getDeviceInfo(false);
     final user = UserManager().currentUser;
+    
     //获取被试者名单
     _getSubjects(user?.userphone);
 
@@ -418,8 +422,35 @@ class HomeScreenState extends State<HomeScreen> {
                         }),
                     DefaultBorderButton(
                         text: "发送数据",
-                        press: () {
-                          showEmailDialog(context);
+                        press: () async {
+                          // showEmailDialog(context);
+                          String? dbPath = DatabaseHelper.instance.db_path;
+                          if (dbPath == null) {
+                            AppTool().showDefineAlert(context, "警告", "无数据库文件");
+                          } else {
+                            final isExist = await File(dbPath).exists();
+                            if (!isExist) {
+                              AppTool()
+                                  .showDefineAlert(context, "警告", "无数据库文件");
+                            } else {
+                              String result = await shareDatabaseFile(dbPath);
+                              // print(result);
+                              if (result == "") {
+                                setState(() {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text("已发送数据，请注意查收"),
+                                      backgroundColor: Colors.green,
+                                      duration: Duration(seconds: 2),
+                                    ),
+                                  );
+                                });
+                              } else {
+                                AppTool().showDefineAlert(
+                                    context, "警告", "发送数据发生错误: $result");
+                              }
+                            }
+                          }
                         }),
                   ],
                 )),
@@ -490,9 +521,7 @@ void showEmailDialog(BuildContext context) {
                   }
 
                   Navigator.of(context).pop(); // 校验通过才关闭窗口
-
                 }
-
               }
             },
             child: const Text("确认"),

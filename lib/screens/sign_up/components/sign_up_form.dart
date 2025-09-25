@@ -1,8 +1,10 @@
 import 'dart:convert';
 import 'dart:ffi';
+import 'package:csv/csv.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:xinyutest/Global/database_utils.dart';
 import 'package:xinyutest/Global/hash_util.dart';
 import 'package:xinyutest/Global/local_service.dart';
@@ -35,6 +37,7 @@ class _SignUpFormState extends State<SignUpForm> {
   bool remember = false;
   var dio = DioClient.dio;
   final List<String?> errors = [];
+  List<SpeechResource> speechresources = List.empty(growable: true);
 
   void addError({String? error}) {
     if (!errors.contains(error)) {
@@ -49,6 +52,28 @@ class _SignUpFormState extends State<SignUpForm> {
       setState(() {
         errors.remove(error);
       });
+    }
+  }
+
+  Future<void> loadSpeechResourcesFromCsv() async {
+    final rawData = await rootBundle.loadString("assets/database1.csv");
+    List<List<dynamic>> rows = const CsvToListConverter().convert(rawData);
+    for (var i = 2; i < rows.length; i++) {
+      // 跳过前两行
+      int keywordNumber = rows[i][4] as int;
+      String keywords = "";
+      for (var j = 5; j < 5 + keywordNumber; j++) {
+        keywords = "${keywords}_${rows[i][j]}";
+      }
+      keywords = keywords.substring(1);
+      SpeechResource sr = SpeechResource(
+          id: rows[i][0] as int,
+          name: rows[i][1] as String,
+          tableId: rows[i][2] as int,
+          wordIndex: rows[i][3] as int,
+          keywordNumber: rows[i][4] as int,
+          keywords: keywords);
+      speechresources.add(sr);
     }
   }
 
@@ -107,10 +132,15 @@ class _SignUpFormState extends State<SignUpForm> {
 
                     print('Initializing database for user: $phone');
                     await DatabaseHelper.instance.init(phone!);
+
+                    await loadSpeechResourcesFromCsv();
                     AspNetUser aspuser = AspNetUser(phoneNumber: phone, realName: name,
                      passwordHash: HashUtils.md5Hash(password!), organizationId: int.parse(organization_id!));
                     int result = await DatabaseHelper.instance.insertAspNetUser(aspuser);
-                    print(result);
+                    for (var i = 0; i < speechresources.length; i++) {
+                      await DatabaseHelper.instance.insertSpeechResource(speechresources[i]);
+                    }
+                    // print(result);
                     Navigator.pushNamed(context, HomeScreen.routeName);
                     // Navigator.of(context).push(MaterialPageRoute(
                     //     builder: (context) =>
@@ -281,7 +311,7 @@ class _SignUpFormState extends State<SignUpForm> {
         if (value.isNotEmpty) {
           removeError(error: kOrgIdNullError);
         }
-        return null;
+        return;
       },
       validator: (value) {
         if (value!.isEmpty) {
