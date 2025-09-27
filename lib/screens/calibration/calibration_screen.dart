@@ -140,7 +140,12 @@ class CalibrationScreenState extends State<CalibrationScreen> {
   delRecorderAudio() {
     if (CalibrationValue.recordPath != '') {
       var dir = Directory(CalibrationValue.recordPath);
-      dir.deleteSync(recursive: true);
+      try {
+        dir.deleteSync(recursive: true);
+      } catch (e) {
+        print("delete ${CalibrationValue.recordPath} error");
+      }
+      
     }
   }
 

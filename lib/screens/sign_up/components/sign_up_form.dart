@@ -68,7 +68,7 @@ class _SignUpFormState extends State<SignUpForm> {
       keywords = keywords.substring(1);
       SpeechResource sr = SpeechResource(
           id: rows[i][0] as int,
-          name: rows[i][1] as String,
+          name: "${rows[i][1] as String}.wav",
           tableId: rows[i][2] as int,
           wordIndex: rows[i][3] as int,
           keywordNumber: rows[i][4] as int,

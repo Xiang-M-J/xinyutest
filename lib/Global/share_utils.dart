@@ -21,8 +21,8 @@ Future<String> shareDatabaseFile(String dbPath) async {
     await dbFile.copy(tempPath);
 
     // 使用 share_plus 分享
-    final result = await Share.shareXFiles(
-      [XFile(tempPath)],
+    final result = await Share.shareFiles(
+      [tempPath],
       text: '这是我的数据库文件 $dbName',
     );
     // if (result.status == ShareResultStatus.dismissed) {

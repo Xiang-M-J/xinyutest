@@ -351,26 +351,26 @@ packages:
     dependency: "direct main"
     description:
       name: flutter_sound
-      sha256: "090a4694b11ecc744c2010621c4ffc5fe7c3079d304ea014961a72c7b72cfe6c"
+      sha256: "891946c46b74f370c56d8da68e88d42b8cf2e3ec1c801514708e5d0fcb9fce14"
       url: "https://pub.flutter-io.cn"
     source: hosted
-    version: "9.2.13"
+    version: "9.1.9"
   flutter_sound_platform_interface:
     dependency: transitive
     description:
       name: flutter_sound_platform_interface
-      sha256: "4537eaeb58a32748c42b621ad6116f7f4c6ee0a8d6ffaa501b165fe1c9df4753"
+      sha256: f3f3fce4138a4793f71392cf694fa6f16be0a97bafa2dd1f329b8b9ef634b039
       url: "https://pub.flutter-io.cn"
     source: hosted
-    version: "9.2.13"
+    version: "9.1.9"
   flutter_sound_web:
     dependency: transitive
     description:
       name: flutter_sound_web
-      sha256: ad4ca92671a1879e1f613e900bbbdb8170b20d57d1e4e6363018fe56b055594f
+      sha256: a23316b98c5a4cf33ade744218a8ba16e45dacabe296f0fa9ec891ce4a3dc325
       url: "https://pub.flutter-io.cn"
     source: hosted
-    version: "9.2.13"
+    version: "9.1.9"
   flutter_staggered_grid_view:
     dependency: "direct main"
     description:

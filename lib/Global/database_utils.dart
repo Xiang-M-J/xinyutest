@@ -473,15 +473,39 @@ class AspNetRole {
 class DeviceCalibration {
   int? id;
   String? testingDevice;
+  String? testedDevice;
   String? createTime;
   double? playVolume;
   int? microphoneCalibrationValue;
   int? speakerCalibrationValue;
 
-  DeviceCalibration({this.id, this.testingDevice, this.createTime, this.playVolume, this.microphoneCalibrationValue, this.speakerCalibrationValue});
+  DeviceCalibration(
+      {this.id,
+      this.testingDevice,
+      this.testedDevice,
+      this.createTime,
+      this.playVolume,
+      this.microphoneCalibrationValue,
+      this.speakerCalibrationValue});
 
-  Map<String, dynamic> toMap() => {'id': id, 'testingDevice': testingDevice, 'createTime': createTime, 'playVolume': playVolume, 'microphoneCalibrationValue': microphoneCalibrationValue, 'speakerCalibrationValue': speakerCalibrationValue};
-  factory DeviceCalibration.fromMap(Map<String, dynamic> map) => DeviceCalibration(id: map['id'], testingDevice: map['testingDevice'], createTime: map['createTime'], playVolume: map['playVolume'], microphoneCalibrationValue: map['microphoneCalibrationValue'], speakerCalibrationValue: map['speakerCalibrationValue']);
+  Map<String, dynamic> toMap() => {
+        'id': id,
+        'testingDevice': testingDevice,
+        'testedDevice': testedDevice,
+        'createTime': createTime,
+        'playVolume': playVolume,
+        'microphoneCalibrationValue': microphoneCalibrationValue,
+        'speakerCalibrationValue': speakerCalibrationValue
+      };
+  factory DeviceCalibration.fromMap(Map<String, dynamic> map) =>
+      DeviceCalibration(
+          id: map['id'],
+          testingDevice: map['testingDevice'],
+          testedDevice: map['testedDevice'],
+          createTime: map['createTime'],
+          playVolume: map['playVolume'],
+          microphoneCalibrationValue: map['microphoneCalibrationValue'],
+          speakerCalibrationValue: map['speakerCalibrationValue']);
 }
 
 class DatabaseHelper {
@@ -530,7 +554,7 @@ class DatabaseHelper {
     _currentUserId = userId;
     _database = await _initDatabase(userId);
 
-    await defaultOperation();
+    // await defaultOperation();
   }
 
   // 初始化用户数据库
@@ -545,7 +569,6 @@ class DatabaseHelper {
       version: version,
       onCreate: _onCreate,
     );
-  
   }
 
   // 关闭数据，在用户登出时调用
@@ -603,7 +626,7 @@ class DatabaseHelper {
 
     await db.execute('''
       CREATE TABLE $tableDeviceCalibrations (
-        id INTEGER PRIMARY KEY AUTOINCREMENT, testingDevice TEXT, createTime TEXT, playVolume REAL,
+        id INTEGER PRIMARY KEY AUTOINCREMENT, testingDevice TEXT, testedDevice TEXT, createTime TEXT, playVolume REAL,
         microphoneCalibrationValue INTEGER, speakerCalibrationValue INTEGER
       )
     ''');
@@ -643,23 +666,29 @@ class DatabaseHelper {
         PRIMARY KEY (userId, roleId)
       )
     ''');
-
   }
 
-  Future<void> defaultOperation() async{
-    await insertSpeechTable(SpeechTable(resources: "1,2,3,4", resourceNumber: 4));
+  Future<void> defaultOperation() async {
+    await insertSpeechTable(
+        SpeechTable(resources: "1,2,3,4", resourceNumber: 4));
     await insertSpeechTable(SpeechTable(resources: "5,6,7", resourceNumber: 3));
-    await insertSpeechTable(SpeechTable(resources: "1,2,3,4", resourceNumber: 4));
+    await insertSpeechTable(
+        SpeechTable(resources: "1,2,3,4", resourceNumber: 4));
     await insertSpeechTable(SpeechTable(resources: "5,6,7", resourceNumber: 3));
-    await insertSpeechTable(SpeechTable(resources: "1,2,3,4", resourceNumber: 4));
+    await insertSpeechTable(
+        SpeechTable(resources: "1,2,3,4", resourceNumber: 4));
     await insertSpeechTable(SpeechTable(resources: "5,6,7", resourceNumber: 3));
-    await insertSpeechTable(SpeechTable(resources: "1,2,3,4", resourceNumber: 4));
+    await insertSpeechTable(
+        SpeechTable(resources: "1,2,3,4", resourceNumber: 4));
     await insertSpeechTable(SpeechTable(resources: "5,6,7", resourceNumber: 3));
-    await insertSpeechTable(SpeechTable(resources: "1,2,3,4", resourceNumber: 4));
+    await insertSpeechTable(
+        SpeechTable(resources: "1,2,3,4", resourceNumber: 4));
     await insertSpeechTable(SpeechTable(resources: "5,6,7", resourceNumber: 3));
-    await insertSpeechTable(SpeechTable(resources: "1,2,3,4", resourceNumber: 4));
+    await insertSpeechTable(
+        SpeechTable(resources: "1,2,3,4", resourceNumber: 4));
     await insertSpeechTable(SpeechTable(resources: "5,6,7", resourceNumber: 3));
-    await insertSpeechTable(SpeechTable(resources: "1,2,3,4", resourceNumber: 4));
+    await insertSpeechTable(
+        SpeechTable(resources: "1,2,3,4", resourceNumber: 4));
     await insertSpeechTable(SpeechTable(resources: "5,6,7", resourceNumber: 3));
   }
 
@@ -675,7 +704,6 @@ class DatabaseHelper {
   Future<List<Map<String, dynamic>>> queryAllRows(String table) async {
     Database? db = await instance.database;
     if (db != null) {
-
       return await db.query(table);
     }
     return List.empty();
@@ -703,7 +731,7 @@ class DatabaseHelper {
   // 被试者
   Future<int> insertSubject(Subject subject) =>
       insert(tableSubjects, subject.toMap());
-  Future<List<Subject>> queryAllSubjects() async{
+  Future<List<Subject>> queryAllSubjects() async {
     List results = await queryAllRows(tableSubjects);
     List<Subject> subjects = List.empty(growable: true);
     for (var i = 0; i < results.length; i++) {
@@ -711,7 +739,7 @@ class DatabaseHelper {
     }
     return subjects;
   }
-      
+
   Future<List<Subject>> querySubjectsByName(String name) async {
     Database? db = await instance.database;
     if (db != null) {
@@ -814,8 +842,9 @@ class DatabaseHelper {
       update(tableSpeechResources, resource.toMap(), 'Id', resource.id!);
   Future<int> deleteSpeechResource(int id) =>
       delete(tableSpeechResources, 'Id', id);
-    
-    Future<List<SpeechResource>> querySpeechResourcesByTableId(int tableId) async {
+
+  Future<List<SpeechResource>> querySpeechResourcesByTableId(
+      int tableId) async {
     Database? db = await instance.database;
     if (db != null) {
       List<Map<String, dynamic>> results = await db.query(
@@ -901,9 +930,32 @@ class DatabaseHelper {
     return -1;
   }
 
-  // // DeviceCalibrations
-  // Future<int> insertDeviceCalibration(DeviceCalibration cal) => insert(tableDeviceCalibrations, cal.toMap());
-  // Future<List<DeviceCalibration>> queryAllDeviceCalibrations() async => (await queryAllRows(tableDeviceCalibrations)).map((e) => DeviceCalibration.fromMap(e)).toList();
-  // Future<int> updateDeviceCalibration(DeviceCalibration cal) => update(tableDeviceCalibrations, cal.toMap(), 'Id', cal.id!);
-  // Future<int> deleteDeviceCalibration(int id) => delete(tableDeviceCalibrations, 'Id', id);
+  // DeviceCalibrations
+  Future<int> insertDeviceCalibration(DeviceCalibration cal) =>
+      insert(tableDeviceCalibrations, cal.toMap());
+  Future<List<DeviceCalibration>> queryAllDeviceCalibrations() async =>
+      (await queryAllRows(tableDeviceCalibrations))
+          .map((e) => DeviceCalibration.fromMap(e))
+          .toList();
+
+  Future<int> updateDeviceCalibration(DeviceCalibration cal) =>
+      update(tableDeviceCalibrations, cal.toMap(), 'Id', cal.id!);
+  Future<int> deleteDeviceCalibration(int id) =>
+      delete(tableDeviceCalibrations, 'Id', id);
+  Future<List<DeviceCalibration>> queryDeviceCalibrationByDevice(String testingDevice, String testedDevice) async {
+    Database? db = await instance.database;
+    if (db != null) {
+      List<Map<String, dynamic>> results = await db.query(
+        tableDeviceCalibrations,
+        where: 'testingDevice = ? AND testedDevice = ?',
+        whereArgs: [testingDevice, testedDevice],
+        // limit: 1, // 限制只返回1条
+      );
+
+      List<DeviceCalibration> deviceCalibrations =
+          results.map((e) => DeviceCalibration.fromMap(e)).toList();
+      return deviceCalibrations;
+    }
+    return List.empty();
+  }
 }

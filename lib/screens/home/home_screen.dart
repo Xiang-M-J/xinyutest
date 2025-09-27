@@ -71,20 +71,25 @@ class HomeScreenState extends State<HomeScreen> {
       // var response = await dio
       //     .get(DioClient.baseurl + '/api/devicecalibration/' + str); //从API中获取信息
       var response = await getCalibrationResponse(
-          CalibrationValue.testingDevice, CalibrationValue.testingDevice);
+          CalibrationValue.testingDevice, CalibrationValue.testedDevice);
       print(response);
-      var status = response.status;
-      isChecked = true;
+      var res = response.data;
+      var status = res["status"] as int;
       if (status == 0) {
         setState(() {
-          CalibrationValue.micCalibrationDB = response.micCalibrationDB;
-          CalibrationValue.calibrationDB = response.calibrationDB;
-          CalibrationValue.calibrationVolume = response.playVolume;
+          var responseData = res["data"];
+          print(responseData);
+          CalibrationValue.micCalibrationDB =
+              responseData["microphoneCalibrationValue"];
+          CalibrationValue.calibrationDB =
+              responseData["speakerCalibrationValue"];
+          num temp = responseData["playVolume"];
+          CalibrationValue.calibrationVolume = temp.toDouble();
           isCalibration = true;
           // print(responseData);
 
           //应填入isCalibration && isJump,原为isJump
-          if (isJump) {
+          if (isCalibration && isJump) {
             /// 路由跳转
             Navigator.of(context).push(
                 MaterialPageRoute(builder: (context) => GetSubjectPage()));
@@ -104,7 +109,7 @@ class HomeScreenState extends State<HomeScreen> {
         isCalibration = false;
         if (isJump) {
           /// 警告，提示对话框
-          AppTool().showDefineAlert(context, "错误", '请检查网络连接！');
+          AppTool().showDefineAlert(context, "错误", '未知错误');
         }
       });
       return;

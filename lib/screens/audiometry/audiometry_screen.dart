@@ -366,7 +366,12 @@ class AudiometryScreenPageState extends State<AudiometryScreenPage> {
     for (int i = 0; i < delAudioPath.length; i++) {
       var dir = Directory(delAudioPath[i]);
       if (dir.existsSync()) {
+        try {
           dir.deleteSync(recursive: true);
+        } catch (e) {
+          print("delete ${delAudioPath[i]} error");
+        }
+          
 
       }
     }
@@ -397,7 +402,15 @@ class AudiometryScreenPageState extends State<AudiometryScreenPage> {
 
   void play() async {
     print("开始播放音乐");
-    await audioPlayer?.play(AssetSource(_wavName));
+    if (_wavName.endsWith(".wav")) {
+      await audioPlayer?.play(AssetSource(_wavName));
+
+    }else{
+      // ignore: prefer_interpolation_to_compose_strings
+      await audioPlayer?.play(AssetSource(_wavName+".wav"));
+
+    }
+    // await audioPlayer?.play(AssetSource(_wavName));
     // player?.play(_wavName);
   }
 
@@ -632,6 +645,7 @@ class AudiometryScreenPageState extends State<AudiometryScreenPage> {
 
                             ///存储本句测试结果
                             print(await File(recordAudioPath).exists());
+
                             var temp =
                                 await MultipartFile.fromFile(recordAudioPath);
                             audioList[_playIndex] = temp;

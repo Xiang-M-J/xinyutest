@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:xinyutest/Global/database_utils.dart';
 import 'package:xinyutest/Global/speech_resources.dart';
-
+import 'package:intl/intl.dart';
 import '../../../dal/user/SharedPreferenceUtil.dart';
 import 'package:xinyutest/dal/user/userdata.dart';
 
@@ -107,70 +107,83 @@ Future<Response> postLocalRegister(Map requestData) async {
   return response;
 }
 
-Future<CalibrationResponse> getCalibrationResponse(
+Future<Response> getCalibrationResponse(
     String testingDevice, String testedDevice) async {
-  String filename = "${testingDevice}_$testedDevice.txt";
-  filename = filename.replaceAll(":", " ");
-  final directory = await getApplicationDocumentsDirectory();
-  final filePath = '${directory.path}/$filename';
-
-  final file = File(filePath);
-
-  bool isChecked = false;
-
-  if (await file.exists()) {
-    // 获取文件状态
-    FileStat stat = await file.stat();
-
-    DateTime modified = stat.modified;
-    DateTime now = DateTime.now();
-
-    bool isToday = modified.year == now.year &&
-        modified.month == now.month &&
-        modified.day == now.day;
-
-    if (isToday) {
-      isChecked = true;
-    } else {
-      print("文件存在，但不是今天创建/修改的: $filePath");
+  try {
+    List<DeviceCalibration> results = await DatabaseHelper.instance
+        .queryDeviceCalibrationByDevice(testingDevice, testedDevice);
+    if (results.isEmpty) {
+      return ErrorResponse("无记录");
     }
-  } else {
-    print("文件不存在: $filePath");
-  }
+    // for (var i = 0; i < results.length; i++) {
 
-  if (isChecked) {
-    String result = await readTextFile(filePath);
-    List<String> lines = result.split('\n');
-    int micCalibrationDB = int.parse(lines[0]);
-    int calibrationDB = int.parse(lines[1]);
-    double playVolume = double.parse(lines[2]);
-    CalibrationResponse response =
-        CalibrationResponse(0, micCalibrationDB, calibrationDB, playVolume);
-    return response;
-  }
+    // }
+    DeviceCalibration result = results[0];
+    String? createTime = result.createTime;
+    if (createTime == null) {
+      return ErrorResponse("过时记录");
+    } else {
+      DateTime prev = DateFormat('yyyy-MM-dd HH:mm:ss').parse(createTime);
+      DateTime now = DateTime.now();
+      bool isToday = prev.year == now.year &&
+          prev.month == now.month &&
+          prev.day == now.day;
 
-  return CalibrationResponse(1, 0, 0, 0);
+      if (isToday) {
+        Map data = result.toMap();
+        // data['microphoneCalibrationValue'] = data['micCalibrationDB'];
+        // data['speakerCalibrationValue'] = data['calibrationDB'];
+        return SuccessResponse(data);
+      } else {
+        return ErrorResponse("过时记录");
+      }
+    }
+  } catch (e) {
+    return ErrorResponse("数据库操作错误");
+  }
 }
 
 Future<Response> postCalibrationResponse(Map formData) async {
   String testedDevice = formData['testedDevice'];
   String testingDevice = formData['testingDevice'];
-  String filename = "${testingDevice}_$testedDevice.txt";
-  filename = filename.replaceAll(":", " ");
-  final directory = await getApplicationDocumentsDirectory();
-  final filePath = '${directory.path}/$filename';
 
-  String content =
-      "${formData['micCalibrationDB']}\n${formData['calibrationDB']}\n${formData['playVolume']}";
+  DateTime now = DateTime.now();
+  DateFormat formatter = DateFormat('yyyy-MM-dd HH:mm:ss');
+  String createTime = formatter.format(now);
 
   try {
-    bool is_success = await saveTextFile(filePath, content);
-    if (!is_success) {
-      return ErrorResponse("出现错误");
+    List<DeviceCalibration> results = await DatabaseHelper.instance
+        .queryDeviceCalibrationByDevice(testingDevice, testedDevice);
+    if (results.isEmpty) {
+      int result = await DatabaseHelper.instance.insertDeviceCalibration(
+          DeviceCalibration(
+              testedDevice: testedDevice,
+              testingDevice: testingDevice,
+              createTime: createTime,
+              playVolume: formData['playVolume'] as double,
+              microphoneCalibrationValue: formData['microphoneCalibrationValue'] as int,
+              speakerCalibrationValue: formData['speakerCalibrationValue'] as int));
+
+      if (result <= 0) {
+        return ErrorResponse("出现错误");
+      }
+      return SuccessResponse("");
+    } else {
+      int id = results[0].id!;
+      int result = await DatabaseHelper.instance.updateDeviceCalibration(
+          DeviceCalibration(
+              id: id,
+              testedDevice: testedDevice,
+              testingDevice: testingDevice,
+              createTime: createTime,
+              playVolume: formData['playVolume'] as double,
+              microphoneCalibrationValue: formData['microphoneCalibrationValue'] as int,
+              speakerCalibrationValue: formData['speakerCalibrationValue'] as int));
+      if (result == -1) {
+        return ErrorResponse("出现错误");
+      }
+      return SuccessResponse("");
     }
-    bool is_exist = await File(filePath).exists();
-    print("file exists: $is_exist");
-    return SuccessResponse("");
   } catch (e) {
     return ErrorResponse(e.toString());
   }
@@ -476,13 +489,16 @@ Future<Response> postTestRecordResponse(String? userId, Map requestData) async {
   if (userId == null) {
     return ErrorResponse("用户未登录");
   }
-
+  
   try {
+    DateTime now = DateTime.now();
+    DateFormat format = DateFormat('yyyy-MM-dd HH:mm:ss');
+    String createTime = format.format(now);
     int result = await DatabaseHelper.instance.insertTestRecord(TestRecord(
       subjectId: requestData['subjectId'] as int,
       interviewerId: 1,
       mode: requestData['mode'] as String,
-      createTime: "",
+      createTime: createTime,
       hearingStatus: requestData['hearingStatus'] as String,
       corpusType: requestData['corpusType'] as String,
       environment: requestData['environment'] as String,
@@ -522,7 +538,7 @@ Future<Response> getSpeechTableByModeResponse(String mode) async {
   }
 }
 
-String convertAudiogramData(Map data){
+String convertAudiogramData(Map data) {
   String result = "";
   for (var key in data.keys) {
     result = "${result}_${data[key]}";
@@ -537,13 +553,15 @@ Future<Response> postAudiogramResponse(String? userId, Map requestData) async {
   }
 
   try {
+    DateTime now = DateTime.now();
+    DateFormat format = DateFormat("yyyy-MM-dd HH:mm:ss");
+    String createTime = format.format(now);
     int result = await DatabaseHelper.instance.insertAudiogram(Audiogram(
-      subjectId: requestData['subjectId'] as int,
-      interviewerId: 1,
-      ear: requestData['ear'] as String,
-      createTime: "",
-      data: convertAudiogramData(requestData['data'] as Map)
-    ));
+        subjectId: requestData['subjectId'] as int,
+        interviewerId: 1,
+        ear: requestData['ear'] as String,
+        createTime: createTime,
+        data: convertAudiogramData(requestData['data'] as Map)));
     if (result <= 0) {
       return ErrorResponse("数据库操作错误");
     } else {

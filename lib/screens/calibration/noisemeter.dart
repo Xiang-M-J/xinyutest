@@ -174,7 +174,12 @@ class NoiseMeterPageState extends State<NoiseMeterPage> {
   delRecorder() {
     if (tempAudioPath != '') {
       var dir = Directory(tempAudioPath);
-      dir.deleteSync(recursive: true);
+      try {
+        dir.deleteSync(recursive: true);
+      } catch (e) {
+        print("delete $tempAudioPath failed");
+      }
+      
     }
   }
 
